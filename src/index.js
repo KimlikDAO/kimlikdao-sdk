@@ -1,6 +1,7 @@
 
 /**
  * @fileoverview A library for verifying a TCKT.
+ *
  * @author KimlikDAO
  */
 
