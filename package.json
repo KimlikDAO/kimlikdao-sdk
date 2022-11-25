@@ -1,6 +1,9 @@
 {
+  "type": "module",
   "devDependencies": {
+    "express": "^4.18.2",
     "google-closure-compiler": "^20221004.0.0",
-    "uglify-js": "^3.17.4"
+    "uglify-js": "^3.17.4",
+    "vite": "^3.2.4"
   }
 }
