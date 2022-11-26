@@ -1,7 +1,11 @@
 /**
  * @fileoverview
  */
+import TCKT from "../lib/ethereum/TCKT";
+import ipfs from "../lib/ipfs";
+import { unlockableSeç } from "../lib/tckt/TCKTVerisi";
 import evm from "/lib/ethereum/evm";
+import { hex, hexten } from '/lib/util/çevir';
 
 window["kimlikdao"] = {};
 
@@ -13,18 +17,39 @@ window["kimlikdao"] = {};
  *
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
-kimlikdao.hasTckt = () => {
-  return Promise.resolve(false);
-}
+kimlikdao.hasTckt = () =>
+  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+    .then((accounts) => {
+      if (accounts.length == 0) return Promise.reject();
+      return TCKT.handleOf(accounts[0]).then((cidHex) =>
+        cidHex != "0x" + "0".repeat(64)
+      )
+    })
 
 /**
  * @param {Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
-kimlikdao.getInfoSections = (infoSections) => {
-  console.log(infoSections);
-  return Promise.resolve({});
-}
+kimlikdao.getInfoSections = (infoSections) =>
+  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+    .then(accounts =>
+      TCKT.handleOf(accounts[0]).then((cidHex) =>
+        ipfs.cidBytetanOku(hexten(cidHex)).then((data) => {
+          /** @const {!ERC721Unlockable} */
+          const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
+          /** @const {Unlockable} */
+          const unlockable = unlockableSeç(tcktData, infoSections);
+          delete unlockable.userPrompt;
+          const asciiEncoder = new TextEncoder();
+          /** @const {string} */
+          const hexEncoded = "0x" + hex(asciiEncoder.encode(JSON.stringify(unlockable)));
+          return ethereum.request(/** @type {RequestParams} */({
+            method: "eth_decrypt",
+            params: [hexEncoded, accounts[0]]
+          }))
+        })
+      )
+    )
 
 /**
  * @constructor

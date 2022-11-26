@@ -1,9 +1,11 @@
 
 build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
-                           lib/ethereum/provider.js lib/ethereum/evm.js \
-                           lib/crypto/sha3.js \
+                           lib/ethereum/provider.js lib/ethereum/TCKT.js lib/ethereum/evm.js \
+                           lib/crypto/sha3.js lib/crypto/ed25519.js \
                            lib/util/çevir.js \
-                           lib/tckt/TCKTBilgileri.js lib/api/edevletApi.js
+                           lib/tckt/TCKTBilgileri.js lib/tckt/TCKTVerisi.js lib/api/edevletApi.js \
+													 lib/tckt/ERC721Unlockable.js \
+													 lib/ipfs.js
 	mkdir -p build
 	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
                              --emit_use_strict \
