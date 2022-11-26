@@ -9,6 +9,23 @@
 var kimlikdao = {};
 
 /**
+ * @typedef {{
+ *   nonce: string,
+ *   text: string,
+ * }}
+ */
+kimlikdao.Challenge;
+
+/**
+ * @typedef {{
+ *   challenge: kimlikdao.Challenge,
+ *   signature: string,
+ *   decryptedTckt: Object<string, InfoSection>
+ * }}
+ */
+kimlikdao.ValidationRequest;
+
+/**
  * Checks whether the connected address has a TCKT on-chain.
  * Note one may have a TCKT on-chain, but it may not be valid; we can only
  * be sure that the TCKT is valid by using the `kimlikdao.validateInfoSection()`
@@ -28,6 +45,7 @@ kimlikdao.getInfoSections;
  * @constructor
  * 
  * @param {string} url
+ * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
  */
 kimlikdao.Validator;
 
@@ -44,4 +62,4 @@ kimlikdao.Validator;
  * @param {boolean} validateAddress
  * @return {Promise<*>}
  */
-kimlikdao.validateInfoSections;
+kimlikdao.validateTckt;

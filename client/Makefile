@@ -1,5 +1,8 @@
 
 build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
+                           lib/ethereum/provider.js lib/ethereum/evm.js \
+                           lib/crypto/sha3.js \
+                           lib/util/çevir.js \
                            lib/tckt/TCKTBilgileri.js lib/api/edevletApi.js
 	mkdir -p build
 	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
@@ -10,4 +13,4 @@ build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
                              --entry_point $< \
                              --js $(filter %.js,$^) \
                              --js_output_file $@
-	yarn uglifyjs $< -m -o $@
+	yarn uglifyjs $@ -m -o $@
