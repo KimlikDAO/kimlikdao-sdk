@@ -1,3 +1,4 @@
+*.lock
 build
 node_modules
-yarn.lock
+server-rs/target

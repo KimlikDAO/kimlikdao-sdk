@@ -45,7 +45,7 @@ kimlikdao.Validator = function (url, generateChallenge) {
 }
 
 /**
- * Given a list of `InfoSection` names, requests the user to decrypt the
+ * Given a list of `InfoSection` names, prompts the user to decrypt the
  * info sections and sends the decrypted info sections for validation to
  * the remote `validator`.
  *
@@ -70,14 +70,19 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
             challenge,
             signature: evm.compactSignature(signature),
-            decryptedTckt: null
           })))
         : Promise.resolve({});
 
-      return challengePromise.then((request) => kimlikdao.getInfoSections(infoSections)
-        .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
-          ...request,
-          decryptedTckt
-        }))
-      );
+      return challengePromise
+        .then((request) => kimlikdao.getInfoSections(infoSections)
+          .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
+            ...request,
+            decryptedTckt
+          }))
+        )
+        .then((request) => fetch(validator.url, {
+          method: "POST",
+          headers: { 'content-type': 'application/json' },
+          data: JSON.stringify(request)
+        }));
     });
