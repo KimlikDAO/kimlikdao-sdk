@@ -7,7 +7,7 @@ window["kimlikdao"] = {};
 /**
  * Checks whether the connected address has a TCKT on-chain.
  * Note one may have a TCKT on-chain, but it may not be valid; we can only
- * be sure that the TCKT is valid by using the `kimlikdao.validateInfoSection()`
+ * be sure that the TCKT is valid by using the `kimlikdao.validateTckt()`
  * method.
  *
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
@@ -29,9 +29,18 @@ kimlikdao.getInfoSections = (infoSections) => {
  * @constructor
  * 
  * @param {string} url
+ * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
  */
-kimlikdao.Validator = function (url) {
+kimlikdao.Validator = function (url, generateChallenge) {
   this.url = url;
+  this.generateChallenge = generateChallenge || (() => {
+    /** @const {number} */
+    const timestamp = Date.now();
+    return Promise.resolve({
+      nonce: "" + timestamp,
+      text: "Please sign to prove you own this account.\n\nTime: " + new Date(timestamp)
+    })
+  });
 }
 
 /**
@@ -47,7 +56,22 @@ kimlikdao.Validator = function (url) {
  * @param {boolean} validateAddress
  * @return {Promise<*>}
  */
-kimlikdao.validateInfoSections = (infoSections, validator, validateAddress) => {
-  console.log(infoSections, validator, validateAddress);
-  return Promise.resolve({});
-}
+kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
+  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+    .then((accounts) => {
+      if (accounts.length == 0) return Promise.reject();
+
+      const challengePromise = validateAddress
+        ? validator.generateChallenge()
+          .then((challenge) => ethereum.request(/** @type {RequestParams} */({
+            method: "personal_sign",
+            params: [challenge.text, accounts[0]]
+          })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
+            challenge,
+            signature,
+            decryptedTckt: null
+          })))
+        : Promise.resolve({});
+
+      return challengePromise;
+    });
