@@ -1,10 +1,10 @@
 /**
  * @fileoverview
  */
-import TCKT from "../lib/ethereum/TCKT";
-import ipfs from "../lib/ipfs";
-import { unlockableSeç } from "../lib/tckt/TCKTVerisi";
 import evm from "/lib/ethereum/evm";
+import TCKT from "/lib/ethereum/TCKT";
+import ipfs from "/lib/ipfs";
+import { unlockableSeç } from "/lib/tckt/TCKTVerisi";
 import { hex, hexten } from '/lib/util/çevir';
 
 window["kimlikdao"] = {};
@@ -22,8 +22,8 @@ kimlikdao.hasTckt = () =>
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       return TCKT.handleOf(accounts[0]).then((cidHex) =>
-        cidHex != "0x" + "0".repeat(64)
-      )
+        BigInt(cidHex) != 0n
+      );
     })
 
 /**
@@ -46,7 +46,7 @@ kimlikdao.getInfoSections = (infoSections) =>
           return ethereum.request(/** @type {RequestParams} */({
             method: "eth_decrypt",
             params: [hexEncoded, accounts[0]]
-          }))
+          }));
         })
       )
     )
@@ -74,8 +74,7 @@ kimlikdao.Validator = function (url, generateChallenge) {
  * info sections and sends the decrypted info sections for validation to
  * the remote `validator`.
  *
- * The response returned from the validator is parsed as a json file and
- * returned to the caller verbatim.
+ * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {Array<string>} infoSections
  * @param {kimlikdao.Validator} validator
@@ -96,7 +95,7 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
             challenge,
             signature: evm.compactSignature(signature),
           })))
-        : Promise.resolve({});
+        : Promise.resolve({ address: accounts[0] });
 
       return challengePromise
         .then((request) => kimlikdao.getInfoSections(infoSections)

@@ -17,9 +17,16 @@ var kimlikdao = {};
 kimlikdao.Challenge;
 
 /**
+ * A request sent to to a `kimlikdao.Validator` to validate the authenticity of
+ * a TCKT.
+ *
+ * If a `challenge` and a `signature` is provided, the `address` can be
+ * omitted.
+ *
  * @typedef {{
  *   challenge: kimlikdao.Challenge,
  *   signature: string,
+ *   address: (string|undefined),
  *   decryptedTckt: Object<string, InfoSection>
  * }}
  */
