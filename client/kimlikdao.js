@@ -1,6 +1,7 @@
 /**
  * @fileoverview
  */
+import evm from "/lib/ethereum/evm";
 
 window["kimlikdao"] = {};
 
@@ -68,7 +69,7 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
             params: [challenge.text, accounts[0]]
           })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
             challenge,
-            signature,
+            signature: evm.compactSignature(signature),
             decryptedTckt: null
           })))
         : Promise.resolve({});
