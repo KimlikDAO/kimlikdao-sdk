@@ -74,5 +74,10 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           })))
         : Promise.resolve({});
 
-      return challengePromise;
+      return challengePromise.then((request) => kimlikdao.getInfoSections(infoSections)
+        .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
+          ...request,
+          decryptedTckt
+        }))
+      );
     });
