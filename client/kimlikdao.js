@@ -5,7 +5,7 @@ import TCKT from "../lib/ethereum/TCKT";
 import ipfs from "../lib/ipfs";
 import { unlockableSeç } from "../lib/tckt/TCKTVerisi";
 import evm from "/lib/ethereum/evm";
-import { hex } from '/lib/util/çevir';
+import { hex, hexten } from '/lib/util/çevir';
 
 window["kimlikdao"] = {};
 
@@ -17,7 +17,7 @@ window["kimlikdao"] = {};
  *
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
-kimlikdao.hasTckt = () => {
+kimlikdao.hasTckt = () =>
   ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
@@ -25,17 +25,16 @@ kimlikdao.hasTckt = () => {
         cidHex != "0x" + "0".repeat(64)
       )
     })
-}
 
 /**
  * @param {Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
-kimlikdao.getInfoSections = (infoSections) => {
+kimlikdao.getInfoSections = (infoSections) =>
   ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
-    .then(accounts => {
-      TCKT.handleOf(accounts[0]).then((cidHex) => {
-        ipfs.cidBytetanOku(cidHex).then((data) => {
+    .then(accounts =>
+      TCKT.handleOf(accounts[0]).then((cidHex) =>
+        ipfs.cidBytetanOku(hexten(cidHex)).then((data) => {
           /** @const {!ERC721Unlockable} */
           const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
           /** @const {Unlockable} */
@@ -49,9 +48,8 @@ kimlikdao.getInfoSections = (infoSections) => {
             params: [hexEncoded, accounts[0]]
           }))
         })
-      })
-    })
-}
+      )
+    )
 
 /**
  * @constructor
