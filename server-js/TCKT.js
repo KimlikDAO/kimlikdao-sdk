@@ -23,6 +23,7 @@ TCKT.prototype.exposureReported = function (humanId) {
 /**
  * @param {string} chainId
  * @param {string} address
+ * @return {Promise<number>}
  */
 TCKT.prototype.mostRecentCreate = function (chainId, address) {
   return 0;

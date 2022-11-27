@@ -20,9 +20,7 @@ kimlikdao.hasTckt = () =>
   ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
-      return TCKT.handleOf(accounts[0]).then((cidHex) =>
-        BigInt(cidHex) != 0n
-      );
+      return TCKT.handleOf(accounts[0]).then((cidHex) => !!BigInt(cidHex));
     })
 
 /**
@@ -49,12 +47,13 @@ kimlikdao.getInfoSections = (address, infoSections) =>
       /** @const {!Array<Unlockable>} */
       const unlockables = selectUnlockables(tcktData, infoSections);
 
+      /** @type {!Object<string, InfoSection>} */
       let decryptedTckt = {};
       for (let i = 0; i < unlockables.length; ++i) {
-        let unlockable = unlockables[i];
-        delete unlockable.userPrompt;
+        delete unlockables[i].userPrompt;
         /** @const {string} */
-        const hexEncoded = "0x" + hex(asciiEncoder.encode(JSON.stringify(unlockable)));
+        const hexEncoded = "0x" +
+          hex(asciiEncoder.encode(JSON.stringify(unlockables[i])));
         if (i > 0)
           await new Promise((resolve) => setTimeout(() => resolve(), 100));
         /** @type {string} */
@@ -66,6 +65,7 @@ kimlikdao.getInfoSections = (address, infoSections) =>
         Object.assign(decryptedTckt,
           /** @type {Object<string, InfoSection>} */(JSON.parse(decryptedText)));
       }
+      /** @const {Set<string>} */
       const infoSectionSet = new Set(infoSections);
       for (const infoSection of Object.keys(decryptedTckt))
         if (!infoSectionSet.has(infoSection)) delete decryptedTckt[infoSection];
