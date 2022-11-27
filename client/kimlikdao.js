@@ -24,12 +24,26 @@ kimlikdao.hasTckt = () =>
     })
 
 /**
- * @param {!ERC721Unlockable} erc721Unlockable
+ * @param {!ERC721Unlockable} nft
  * @param {Array<string>} infoSections
  * @return {!Array<Unlockable>}
  */
-const selectUnlockables = (erc721Unlockable, infoSections) => {
-  return [erc721Unlockable.unlockables["personInfo"]];
+const selectUnlockables = (nft, infoSections) => {
+  if (nft.unlockable)
+    return [nft.unlockable];
+  if (!nft.unlockables || !nft.unlockables.length)
+    return [];
+  if (nft.unlockables.length == 1)
+    return Object.values(nft.unlockables);
+
+  /**
+   * @param {Set<string>} set
+   * @param {Array<string>} list
+   * @return {boolean}
+   */
+  const contains = (set, list) => list.every(x => set.has(x));
+
+  return [nft.unlockables["personInfo"]];
 }
 
 /**
@@ -108,20 +122,21 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
   ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
+      const address = accounts[0];
 
       const challengePromise = validateAddress
         ? validator.generateChallenge()
           .then((challenge) => ethereum.request(/** @type {RequestParams} */({
             method: "personal_sign",
-            params: [challenge.text, accounts[0]]
+            params: [challenge.text, address]
           })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
             challenge,
             signature: evm.compactSignature(signature),
           })))
-        : Promise.resolve({ address: accounts[0] });
+        : Promise.resolve({ address });
 
       return challengePromise
-        .then((request) => kimlikdao.getInfoSections(accounts[0], infoSections)
+        .then((request) => kimlikdao.getInfoSections(address, infoSections)
           .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
             ...request,
             decryptedTckt
