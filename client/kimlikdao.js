@@ -55,17 +55,21 @@ kimlikdao.getInfoSections = (address, infoSections) =>
         delete unlockable.userPrompt;
         /** @const {string} */
         const hexEncoded = "0x" + hex(asciiEncoder.encode(JSON.stringify(unlockable)));
+        if (i > 0)
+          await new Promise((resolve) => setTimeout(() => resolve(), 100));
         /** @type {string} */
         let decryptedText = await ethereum.request(/** @type {RequestParams} */({
           method: "eth_decrypt",
           params: [hexEncoded, address]
         }));
-        if (i + 1 < unlockables.length)
-          await new Promise((resolve) => setTimeout(() => resolve(), 100));
         decryptedText = decryptedText.slice(43, decryptedText.indexOf("\0"));
         Object.assign(decryptedTckt,
           /** @type {Object<string, InfoSection>} */(JSON.parse(decryptedText)));
       }
+      const infoSectionSet = new Set(infoSections);
+      for (const infoSection of Object.keys(decryptedTckt))
+        if (!infoSectionSet.has(infoSection)) delete decryptedTckt[infoSection];
+
       return decryptedTckt;
     })
   )
