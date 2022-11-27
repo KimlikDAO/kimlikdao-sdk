@@ -4,7 +4,6 @@
 import evm from "/lib/ethereum/evm";
 import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
-import { unlockableSeç } from "/lib/tckt/TCKTVerisi";
 import { hex, hexten } from '/lib/util/çevir';
 
 window["kimlikdao"] = {};
@@ -27,29 +26,49 @@ kimlikdao.hasTckt = () =>
     })
 
 /**
+ * @param {!ERC721Unlockable} erc721Unlockable
+ * @param {Array<string>} infoSections
+ * @return {!Array<Unlockable>}
+ */
+const selectUnlockables = (erc721Unlockable, infoSections) => {
+  return [erc721Unlockable.unlockables["personInfo"]];
+}
+
+/**
+ * @param {string} address
  * @param {Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
-kimlikdao.getInfoSections = (infoSections) =>
-  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
-    .then(accounts =>
-      TCKT.handleOf(accounts[0]).then((cidHex) =>
-        ipfs.cidBytetanOku(hexten(cidHex)).then((data) => {
-          /** @const {!ERC721Unlockable} */
-          const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
-          /** @const {Unlockable} */
-          const unlockable = unlockableSeç(tcktData, infoSections);
-          delete unlockable.userPrompt;
-          const asciiEncoder = new TextEncoder();
-          /** @const {string} */
-          const hexEncoded = "0x" + hex(asciiEncoder.encode(JSON.stringify(unlockable)));
-          return ethereum.request(/** @type {RequestParams} */({
-            method: "eth_decrypt",
-            params: [hexEncoded, accounts[0]]
-          }));
-        })
-      )
-    )
+kimlikdao.getInfoSections = (address, infoSections) =>
+  TCKT.handleOf(address).then((cidHex) =>
+    ipfs.cidBytetanOku(hexten(cidHex)).then(async (data) => {
+      /** @const {!ERC721Unlockable} */
+      const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
+      /** @const {TextEncoder} */
+      const asciiEncoder = new TextEncoder();
+      /** @const {!Array<Unlockable>} */
+      const unlockables = selectUnlockables(tcktData, infoSections);
+
+      let decryptedTckt = {};
+      for (let i = 0; i < unlockables.length; ++i) {
+        let unlockable = unlockables[i];
+        delete unlockable.userPrompt;
+        /** @const {string} */
+        const hexEncoded = "0x" + hex(asciiEncoder.encode(JSON.stringify(unlockable)));
+        /** @type {string} */
+        let decryptedText = await ethereum.request(/** @type {RequestParams} */({
+          method: "eth_decrypt",
+          params: [hexEncoded, address]
+        }));
+        if (i + 1 < unlockables.length)
+          await new Promise((resolve) => setTimeout(() => resolve(), 100));
+        decryptedText = decryptedText.slice(43, decryptedText.indexOf("\0"));
+        Object.assign(decryptedTckt,
+          /** @type {Object<string, InfoSection>} */(JSON.parse(decryptedText)));
+      }
+      return decryptedTckt;
+    })
+  )
 
 /**
  * @constructor
@@ -98,7 +117,7 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
         : Promise.resolve({ address: accounts[0] });
 
       return challengePromise
-        .then((request) => kimlikdao.getInfoSections(infoSections)
+        .then((request) => kimlikdao.getInfoSections(accounts[0], infoSections)
           .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
             ...request,
             decryptedTckt

@@ -17,6 +17,14 @@ var kimlikdao = {};
 kimlikdao.Challenge;
 
 /**
+ * @constructor
+ *
+ * @param {string} url
+ * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
+ */
+kimlikdao.Validator;
+
+/**
  * A request sent to to a `kimlikdao.Validator` to validate the authenticity of
  * a TCKT.
  *
@@ -43,18 +51,11 @@ kimlikdao.ValidationRequest;
 kimlikdao.hasTckt;
 
 /**
+ * @param {string} address
  * @param {Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
 kimlikdao.getInfoSections;
-
-/**
- * @constructor
- * 
- * @param {string} url
- * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
- */
-kimlikdao.Validator;
 
 /**
  * Given a list of `InfoSection` names, requests the user to decrypt the
