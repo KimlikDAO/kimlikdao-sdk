@@ -28,10 +28,10 @@ TCKT.prototype.exposureReported = function (humanId) {
       method: 'eth_call',
       params: [({
         to: "0xcCc0E26339e393e51a3f46fB45d0e6f95ca32cCc",
-        data: "0x70a08231" + humanId
+        data: "0x72797221" + humanId
       }), "latest"]
     })
-  }).then((res) => res.statusText == "OK" ? res.json() : Promise.reject)
+  }).then((res) => res.statusText == "OK" ? res.json().then((data) => data.result) : Promise.reject())
 }
 
 /**
@@ -50,7 +50,7 @@ TCKT.prototype.mostRecentCreate = function (chainId, address) {
  *                           length 66 hex string.
  */
 TCKT.prototype.handleOf = (chainId, address) => {
-  const res = fetch(nodeUrls[chainId], {
+  return fetch(nodeUrls[chainId], {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -64,7 +64,7 @@ TCKT.prototype.handleOf = (chainId, address) => {
         data: "0x8a591c8a" + evm.address(address)
       }), "latest"]
     })
-  }).then((res) => res.statusText == "OK" ? res.json() : Promise.reject)
+  }).then((res) => res.statusText == "OK" ? res.json().then((data) => data.result) : Promise.reject())
 }
 
 export default TCKT;
