@@ -17,7 +17,21 @@ function TCKT(nodeUrls) {
  * @return {Promise<number>} the timestamp of the last exposure report or zero.
  */
 TCKT.prototype.exposureReported = function (humanId) {
-  return 0;
+  return fetch(nodeUrls[chainId], {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_call',
+      params: [({
+        to: "0xcCc0E26339e393e51a3f46fB45d0e6f95ca32cCc",
+        data: "0x70a08231" + humanId
+      }), "latest"]
+    })
+  }).then((res) => res.statusText == "OK" ? res.json() : Promise.reject)
 }
 
 /**
@@ -36,7 +50,7 @@ TCKT.prototype.mostRecentCreate = function (chainId, address) {
  *                           length 66 hex string.
  */
 TCKT.prototype.handleOf = (chainId, address) => {
-  fetch(nodeUrls[chainId], {
+  const res = fetch(nodeUrls[chainId], {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -50,7 +64,7 @@ TCKT.prototype.handleOf = (chainId, address) => {
         data: "0x8a591c8a" + evm.address(address)
       }), "latest"]
     })
-  })
+  }).then((res) => res.statusText == "OK" ? res.json() : Promise.reject)
 }
 
 export default TCKT;
