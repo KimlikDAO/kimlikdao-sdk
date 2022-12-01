@@ -21,7 +21,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Build & typecheck
+      - name: Build & test
         run: |
           yarn
+          make test
+
+      - name: Build
+        run: |
           make

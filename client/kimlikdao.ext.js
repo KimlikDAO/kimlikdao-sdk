@@ -6,7 +6,7 @@
 /**
  * @const
  */
-var kimlikdao = {};
+const kimlikdao = {};
 
 /**
  * @typedef {{
@@ -51,8 +51,15 @@ kimlikdao.ValidationRequest;
 kimlikdao.hasTckt;
 
 /**
+ * @param {!ERC721Unlockable} nft
+ * @param {!Array<string>} infoSections
+ * @return {!Array<!Unlockable>}
+ */
+kimlikdao.selectUnlockables;
+
+/**
  * @param {string} address
- * @param {Array<string>} infoSections
+ * @param {!Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
 kimlikdao.getInfoSections;
@@ -65,7 +72,7 @@ kimlikdao.getInfoSections;
  * The response returned from the validator is parsed as a json file and
  * returned to the caller verbatim.
  *
- * @param {Array<string>} infoSections
+ * @param {!Array<string>} infoSections
  * @param {kimlikdao.Validator} validator
  * @param {boolean} validateAddress
  * @return {Promise<*>}
