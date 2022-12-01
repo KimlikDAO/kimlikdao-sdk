@@ -1,12 +1,9 @@
-include client/test/Makefile
-
-build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
-                           lib/api/edevletApi.js \
-                           lib/ethereum/provider.js lib/ethereum/TCKT.js lib/ethereum/evm.js \
-                           lib/crypto/sha3.js \
-                           lib/tckt/TCKTBilgileri.js lib/tckt/ERC721Unlockable.js \
-                           lib/util/çevir.js \
-                           lib/ipfs.js
+build/server-js/test/TCKT.compiled-test.js: server-js/test/TCKT.compiled-test.js server-js/TCKT.js \
+    lib/api/jsonrpc.js \
+    lib/ethereum/evm.js \
+    lib/crypto/sha3.js \
+    lib/testing/assert.js \
+    lib/util/çevir.js
 	mkdir -p $(dir $@)
 	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
                              --emit_use_strict \
@@ -17,3 +14,7 @@ build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
                              --js $^ \
                              --js_output_file $@
 	yarn uglifyjs $@ -m -o $@
+	node $@
+
+.PHONY: server-js/test
+server-js/test: build/server-js/test/TCKT.compiled-test.js
