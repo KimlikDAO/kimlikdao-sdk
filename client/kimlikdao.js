@@ -1,6 +1,7 @@
 /**
  * @fileoverview
  */
+
 import evm from "/lib/ethereum/evm";
 import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
@@ -25,30 +26,77 @@ kimlikdao.hasTckt = () =>
 
 /**
  * @param {!ERC721Unlockable} nft
- * @param {Array<string>} infoSections
+ * @param {!Array<string>} infoSections
  * @return {!Array<Unlockable>}
  */
-const selectUnlockables = (nft, infoSections) => {
+kimlikdao.selectUnlockables = (nft, infoSections) => {
   if (nft.unlockable)
     return [nft.unlockable];
-  if (!nft.unlockables || !nft.unlockables.length)
+  if (!nft.unlockables)
     return [];
-  if (nft.unlockables.length == 1)
+  if (nft.unlockables.length <= 1)
     return Object.values(nft.unlockables);
 
+  // If there is a solution with 1 or 2 unlockables, we'll find the optimal
+  // solution using exhaustive search, which takes O(n^2) time where
+  // `n = nft.unlockables.length`. Otherwise, we'll resort to a greedy
+  // approach.
+  /** @const {Set<string>} */
+  const iss = new Set(infoSections);
+
   /**
-   * @param {Set<string>} set
-   * @param {Array<string>} list
-   * @return {boolean}
+   * @const {Array<{
+   *   set: Set<string>,
+   *   extra: number,
+   *   unlockable: Unlockable
+   * }>}
    */
-  const contains = (set, list) => list.every(x => set.has(x));
+  const arr = [];
+  /** @type {number} */
+  let sln = -1;
+  for (const key in nft.unlockables) {
+    /** @const {!Array<string>} */
+    const sections = key.split(",");
+    /** @const {!Set<string>} */
+    const set = new Set(sections.filter((e) => iss.has(e)));
+    /** @const {number} */
+    const extra = sections.length - set.size;
+    if (set.size == iss.size && (sln < 0 || arr[sln].extra > extra))
+      sln = arr.length;
+    arr.push({
+      set,
+      extra,
+      unlockable: nft.unlockables[key]
+    });
+  }
+  if (sln >= 0)
+    return [arr[sln].unlockable];
+
+  /** @const {number} */
+  const n = arr.length;
+  /** @type {number} */
+  let bestI = -1;
+  /** @type {number} */
+  let bestJ = -1;
+  /** @type {number} */
+  let bestExtra = 1e9;
+  for (let i = 0; i < n; ++i)
+    for (let j = i + 1; j < n; ++j)
+      if (arr[i].extra + arr[j].extra < bestExtra
+        && infoSections.every((x) => arr[i].set.has(x) || arr[j].set.has(x))) {
+        bestExtra = arr[i].extra + arr[j].extra;
+        bestI = i;
+        bestJ = j;
+      }
+  if (bestI >= 0)
+    return [arr[bestI].unlockable, arr[bestJ].unlockable];
 
   return [nft.unlockables["personInfo"]];
 }
 
 /**
  * @param {string} address
- * @param {Array<string>} infoSections
+ * @param {!Array<string>} infoSections
  * @return {Promise<Object<string, InfoSection>>}
  */
 kimlikdao.getInfoSections = (address, infoSections) =>
@@ -59,7 +107,7 @@ kimlikdao.getInfoSections = (address, infoSections) =>
       /** @const {TextEncoder} */
       const asciiEncoder = new TextEncoder();
       /** @const {!Array<Unlockable>} */
-      const unlockables = selectUnlockables(tcktData, infoSections);
+      const unlockables = kimlikdao.selectUnlockables(tcktData, infoSections);
 
       /** @type {!Object<string, InfoSection>} */
       let decryptedTckt = {};
@@ -113,7 +161,7 @@ kimlikdao.Validator = function (url, generateChallenge) {
  *
  * The response returned from the validator is passed onto the caller verbatim.
  *
- * @param {Array<string>} infoSections
+ * @param {!Array<string>} infoSections
  * @param {kimlikdao.Validator} validator
  * @param {boolean} validateAddress
  * @return {Promise<*>}
