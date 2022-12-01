@@ -50,11 +50,10 @@ kimlikdao.ValidationRequest;
  */
 kimlikdao.hasTckt;
 
-
 /**
  * @param {!ERC721Unlockable} nft
  * @param {!Array<string>} infoSections
- * @return {!Array<Unlockable>}
+ * @return {!Array<!Unlockable>}
  */
 kimlikdao.selectUnlockables;
 

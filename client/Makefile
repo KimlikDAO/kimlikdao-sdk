@@ -36,3 +36,6 @@ build/client/test/kimlikdao.compiled-test.js: client/test/kimlikdao.compiled-tes
 	yarn uglifyjs lib/testing/nodeHeader.js build/client/test/prelude.js \
                   build/client/kimlikdao.js $@ -m -o $@
 	node $@
+
+.PHONY: client/test
+client/test: build/client/test/kimlikdao.compiled-test.js
