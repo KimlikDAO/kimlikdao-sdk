@@ -25,7 +25,7 @@ const jsonRpcCall = (url, method, params) => fetch(url, {
     params
   }))
 }).then((res) => res.ok ? res.json() : Promise.reject())
-  .then(/** @type{jsonrpc.Reponse} */(res) => "result" in res ? res.result : Promise.reject());
+  .then((res) => "result" in res ? res.result : Promise.reject());
 
 /**
  * Note exposure reports are filed only on Avalanche C-chain therefore this
@@ -35,7 +35,7 @@ const jsonRpcCall = (url, method, params) => fetch(url, {
  * @return {Promise<number>} the timestamp of the last exposure report or zero.
  */
 TCKT.prototype.exposureReported = function (humanId) {
-  return jsonRpcCall(nodeUrls[chainId], 'eth_call', [
+  return jsonRpcCall(this.nodeUrls["0xa86a"], 'eth_call', [
     /** @type {Transaction} */({
       to: TCKT_ADDR,
       data: "0x72797221" + humanId
@@ -49,7 +49,7 @@ TCKT.prototype.exposureReported = function (humanId) {
  * @return {Promise<number>}
  */
 TCKT.prototype.mostRecentCreate = function (chainId, address) {
-  return 0;
+  return Promise.resolve(0);
 }
 
 /**
@@ -58,8 +58,8 @@ TCKT.prototype.mostRecentCreate = function (chainId, address) {
  * @return {Promise<string>} the IPFS handle of the address, encoded as a 
  *                           length 66 hex string.
  */
-TCKT.prototype.handleOf = (chainId, address) => {
-  return jsonRpcCall(nodeUrls[chainId], 'eth_call', [
+TCKT.prototype.handleOf = function (chainId, address) {
+  return jsonRpcCall(this.nodeUrls[chainId], 'eth_call', [
     /** @type {Transaction} */({
       to: TCKT_ADDR,
       data: "0x8a591c8a" + evm.address(address)
