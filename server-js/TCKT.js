@@ -1,6 +1,12 @@
 import evm from "/lib/ethereum/evm";
 
 /**
+ * @const {string}
+ * @noinline
+ */
+export const TCKT_ADDR = "0xcCc0F938A2C94b0fFBa49F257902Be7F56E62cCc";
+
+/**
  * @constructor
  *
  * @param {Object<string, string>} nodeUrls
@@ -8,6 +14,18 @@ import evm from "/lib/ethereum/evm";
 function TCKT(nodeUrls) {
   this.nodeUrls = nodeUrls;
 }
+
+const jsonRpcCall = (url, method, params) => fetch(url, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify(/** @type {jsonrpc.Request} */({
+    jsonrpc: '2.0',
+    id: 1,
+    method,
+    params
+  }))
+}).then((res) => res.ok ? res.json() : Promise.reject())
+  .then(/** @type{jsonrpc.Reponse} */(res) => "result" in res ? res.result : Promise.reject());
 
 /**
  * Note exposure reports are filed only on Avalanche C-chain therefore this
@@ -17,21 +35,12 @@ function TCKT(nodeUrls) {
  * @return {Promise<number>} the timestamp of the last exposure report or zero.
  */
 TCKT.prototype.exposureReported = function (humanId) {
-  return fetch(nodeUrls[chainId], {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_call',
-      params: [({
-        to: "0xcCc0E26339e393e51a3f46fB45d0e6f95ca32cCc",
-        data: "0x72797221" + humanId
-      }), "latest"]
-    })
-  }).then((res) => res.statusText == "OK" ? res.json().then((data) => data.result) : Promise.reject())
+  return jsonRpcCall(nodeUrls[chainId], 'eth_call', [
+    /** @type {Transaction} */({
+      to: TCKT_ADDR,
+      data: "0x72797221" + humanId
+    }), "latest"
+  ]);
 }
 
 /**
@@ -50,21 +59,12 @@ TCKT.prototype.mostRecentCreate = function (chainId, address) {
  *                           length 66 hex string.
  */
 TCKT.prototype.handleOf = (chainId, address) => {
-  return fetch(nodeUrls[chainId], {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_call',
-      params: [({
-        to: "0xcCc0E26339e393e51a3f46fB45d0e6f95ca32cCc",
-        data: "0x8a591c8a" + evm.address(address)
-      }), "latest"]
-    })
-  }).then((res) => res.statusText == "OK" ? res.json().then((data) => data.result) : Promise.reject())
+  return jsonRpcCall(nodeUrls[chainId], 'eth_call', [
+    /** @type {Transaction} */({
+      to: TCKT_ADDR,
+      data: "0x8a591c8a" + evm.address(address)
+    }), "latest"
+  ]);
 }
 
 export default TCKT;
