@@ -66,7 +66,7 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
       const inc = new Set(sections.filter((e) => iss.has(e)));
       /** @const {!Set<string>} */
       const exc = new Set(sections.filter((e) => !iss.has(e)));
-      if (inc.size == iss.size && (bestI < 0 || bestExc > exc.size)) {
+      if (inc.size == iss.size && exc.size < bestExc) {
         bestI = arr.length;
         bestExc = exc.size;
       }
@@ -82,7 +82,7 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
   }
 
   /**
-   * Scores 100 * |A \cup B| + |A| + |B|
+   * Calculates 100 * |A \cup B| + |A| + |B|.
    *
    * @param {Set<string>} A
    * @param {Set<string>} B
@@ -91,7 +91,8 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
   const score = (A, B) => {
     /** @type {number} */
     let count = 101 * (A.size + B.size);
-    B.forEach((b) => count -= +A.has(b) * 100);
+    for (const b of B)
+      count -= +A.has(b) * 100;
     return count;
   }
 
