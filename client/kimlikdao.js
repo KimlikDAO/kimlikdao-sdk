@@ -21,7 +21,8 @@ kimlikdao.hasTckt = () =>
   ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
-      return TCKT.handleOf(accounts[0]).then((cidHex) => !!BigInt(cidHex));
+      return TCKT.handleOf(accounts[0])
+        .then((cidHex) => cidHex.slice(2).replaceAll("0", ""));
     })
 
 /**
@@ -170,7 +171,7 @@ kimlikdao.getInfoSections = (address, infoSections) =>
       }
       /** @const {Set<string>} */
       const infoSectionSet = new Set(infoSections);
-      for (const infoSection of Object.keys(decryptedTckt))
+      for (const infoSection in decryptedTckt)
         if (!infoSectionSet.has(infoSection)) delete decryptedTckt[infoSection];
 
       return decryptedTckt;
