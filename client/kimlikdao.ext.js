@@ -73,7 +73,7 @@ kimlikdao.getInfoSections;
  * returned to the caller verbatim.
  *
  * @param {!Array<string>} infoSections
- * @param {kimlikdao.Validator} validator
+ * @param {!kimlikdao.Validator} validator
  * @param {boolean} validateAddress
  * @return {Promise<*>}
  */

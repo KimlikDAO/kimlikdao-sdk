@@ -18,7 +18,7 @@ window["kimlikdao"] = {};
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
 kimlikdao.hasTckt = () =>
-  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       return TCKT.handleOf(accounts[0])
@@ -67,7 +67,7 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
       const inc = new Set(sections.filter((e) => iss.has(e)));
       /** @const {!Set<string>} */
       const exc = new Set(sections.filter((e) => !iss.has(e)));
-      if (inc.size == iss.size && (bestI < 0 || bestExc > exc.size)) {
+      if (inc.size == iss.size && exc.size < bestExc) {
         bestI = arr.length;
         bestExc = exc.size;
       }
@@ -83,7 +83,7 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
   }
 
   /**
-   * Scores 100 * |A \cup B| + |A| + |B|
+   * Calculates 100 * |A \cup B| + |A| + |B|.
    *
    * @param {Set<string>} A
    * @param {Set<string>} B
@@ -92,7 +92,8 @@ kimlikdao.selectUnlockables = (nft, infoSections) => {
   const score = (A, B) => {
     /** @type {number} */
     let count = 101 * (A.size + B.size);
-    B.forEach((b) => count -= +A.has(b) * 100);
+    for (const b of B)
+      count -= +A.has(b) * 100;
     return count;
   }
 
@@ -147,7 +148,7 @@ kimlikdao.getInfoSections = (address, infoSections) =>
       const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
       /** @const {TextEncoder} */
       const asciiEncoder = new TextEncoder();
-      /** @const {!Array<Unlockable>} */
+      /** @const {!Array<!Unlockable>} */
       const unlockables = kimlikdao.selectUnlockables(tcktData, infoSections);
 
       /** @type {!Object<string, InfoSection>} */
@@ -160,7 +161,7 @@ kimlikdao.getInfoSections = (address, infoSections) =>
         if (i > 0)
           await new Promise((resolve) => setTimeout(() => resolve(), 100));
         /** @type {string} */
-        let decryptedText = await ethereum.request(/** @type {RequestParams} */({
+        let decryptedText = await ethereum.request(/** @type {ethereum.Request} */({
           method: "eth_decrypt",
           params: [hexEncoded, address]
         }));
@@ -203,19 +204,19 @@ kimlikdao.Validator = function (url, generateChallenge) {
  * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {!Array<string>} infoSections
- * @param {kimlikdao.Validator} validator
+ * @param {!kimlikdao.Validator} validator
  * @param {boolean} validateAddress
  * @return {Promise<*>}
  */
 kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
-  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       const address = accounts[0];
 
       const challengePromise = validateAddress
         ? validator.generateChallenge()
-          .then((challenge) => ethereum.request(/** @type {RequestParams} */({
+          .then((challenge) => ethereum.request(/** @type {ethereum.Request} */({
             method: "personal_sign",
             params: [challenge.text, address]
           })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
