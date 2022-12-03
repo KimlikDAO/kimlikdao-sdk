@@ -2,20 +2,16 @@ import express from 'express';
 import { readFileSync } from 'fs';
 import { createServer } from 'vite';
 
-/** @const {Object<string, string>} */
-const SAYFALAR = {
-  "/": "index.html",
-};
-
 createServer({
   server: { middlewareMode: true },
   appType: 'custom'
 }).then((vite) => {
   const app = express()
   app.use(vite.middlewares)
+  console.log("path:", import.meta.url);
   app.use("/", (req, res, next) => {
     console.log(req.path);
-    let page = readFileSync('examples/index.html', 'utf-8');
+    let page = readFileSync('examples/simple-example/index.html', 'utf-8');
     vite.transformIndexHtml(req.path, page).then((page) => {
       res.status(200)
         .set({ 'Content-type': 'text/html;charset=utf-8' })

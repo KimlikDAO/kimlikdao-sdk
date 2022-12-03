@@ -22,7 +22,7 @@ kimlikdao.hasTckt = () =>
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       return TCKT.handleOf(accounts[0])
-        .then((cidHex) => cidHex.slice(2).replaceAll("0", ""));
+        .then((cidHex) => !!cidHex.slice(2).replaceAll("0", ""));
     })
 
 /**
@@ -238,3 +238,5 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           data: JSON.stringify(request)
         }));
     });
+
+export default window["kimlikdao"];
