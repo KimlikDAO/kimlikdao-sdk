@@ -1,6 +1,6 @@
 build/server-js/test/TCKT.compiled-test.js: server-js/test/TCKT.compiled-test.js server-js/TCKT.js \
     lib/api/jsonrpc.js \
-    lib/ethereum/evm.js \
+    lib/ethereum/jsonrpc.js lib/ethereum/evm.js \
     lib/crypto/sha3.js \
     lib/testing/assert.js \
     lib/util/çevir.js

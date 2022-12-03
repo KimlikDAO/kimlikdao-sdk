@@ -1,7 +1,7 @@
 build/client/test/kimlikdao.compiled-test.js: client/test/kimlikdao.compiled-test.js \
     client/kimlikdao.ext.js \
     lib/api/edevletApi.js \
-    lib/ethereum/provider.js \
+    lib/ethereum/jsonrpc.js lib/ethereum/provider.js \
     lib/tckt/ERC721Unlockable.js lib/tckt/TCKTBilgileri.js \
     lib/testing/assert.js \
     build/client/kimlikdao.js
