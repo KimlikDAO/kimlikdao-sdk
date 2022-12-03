@@ -2,11 +2,6 @@ import express from 'express';
 import { readFileSync } from 'fs';
 import { createServer } from 'vite';
 
-/** @const {Object<string, string>} */
-const SAYFALAR = {
-  "/": "index.html",
-};
-
 createServer({
   server: { middlewareMode: true },
   appType: 'custom'

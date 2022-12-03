@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-en="Simple Example">Simple Example</title>
   <link href="./examples/simple-example/index.css" rel="stylesheet" type="text/css" data-remove />
-
+  <script async type="module" src=" ./examples/simple-example/index.js" data-remove-type></script>
+  <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
 </head>
 
 <body>
@@ -50,14 +51,20 @@
         <!-- naviation language -->
         <button id=nl data-en="Türkçe">English</button>
         <ul id=nld style="display:none">
-          <li id="nltr"><img src="./simple-example/img/tr.svg" width=16 height=16> Türkçe</li>
-          <li id="nlen"><img src="./simple-example/img/en.svg" width=16 height=16> English</li>
+          <li id="nltr"><img src="./examples/simple-example/img/tr.svg" width=16 height=16> Türkçe</li>
+          <li id="nlen"><img src="./examples/simple-example/img/en.svg" width=16 height=16> English</li>
         </ul>
       </div>
     </div>
   </div>
-  <script type="module" src=" ./examples/simple-example/index.js">
-  </script>
+  <div class="con">
+    <div class="vc">
+      <button id=nas data-en="hasTckt">hasTckt</button>
+      <p id="hasTcktOutput"></p>
+      <button id=naz data-en="getInfoSections">getInfoSections</button>
+      <p id="getInfoSectionsOutput"></p>
+    </div>
+  </div>
 </body>
 
 </html>
