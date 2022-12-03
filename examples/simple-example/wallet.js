@@ -27,7 +27,7 @@ const ağ = () => Ağ;
 /** @const {function():?string} */
 const adres = () => Adres;
 
-/** @const {Object<string, Array< string>>} */
+/** @const {Object<string, Array<string>>} */
 const AğBilgileri = {
   "0xa86a": ["snowtrace.io", "Avalanche"],
   "0x1": ["etherscan.io", "Ethereum"],
@@ -63,7 +63,7 @@ const ağDeğişti = (yeniAğ) => {
   if (!(yeniAğ in AğBilgileri)) {
     // Kullanıcı desteklemediğimiz bir ağa geçerse (uzantı cüzdanı
     // arabiriminden), en son seçili ağa geri geçme isteği yolluyoruz.
-    ethereum.request(/** @type {RequestParams} */({
+    ethereum.request(/** @type {ethereum.Request} */({
       method: "wallet_switchEthereumChain",
       params: [{ "chainId": Ağ }],
     })).catch(console.log);
@@ -129,50 +129,18 @@ const adresDeğişince = (f) => {
 const bağla = () => {
   ethereum
     .request(
-      /** @type {RequestParams} */({ method: "eth_requestAccounts" }))
+      /** @type {ethereum.Request} */({ method: "eth_requestAccounts" }))
     .then(adresDeğişti)
     .catch(console.log);
 
   ethereum
     .request(
-      /** @type {RequestParams} */({ method: "eth_chainId" }))
+      /** @type {ethereum.Request} */({ method: "eth_chainId" }))
     .then(ağDeğişti)
     .catch(console.log);
 }
 
 dom.menüYarat(DilButonu, dom.adla("nld"));
-dom.adla("nld").onclick = (event) => {
-  /** @const {Element} */
-  const li = event.target.nodeName == "LI"
-    ? event.target : event.target.parentElement;
-  /** @const {string} */
-  const dil = li.id.slice(2);
-  if (dom.TR) {
-    if (dil == "en") {
-      const sayfalar = {
-        "/": "/?en",
-        "/al": "/get",
-        "/incele": "/view",
-        "/oyla": "/vote",
-        "/iptal": "/revoke"
-      };
-      document.cookie = "l=en; path=/; max-age=" + 1e6;
-      window.location.href = sayfalar[window.location.pathname];
-    }
-  } else {
-    if (dil == "tr") {
-      const sayfalar = {
-        "/": "/?tr",
-        "/get": "/al",
-        "/view": "/incele",
-        "/vote": "/oyla",
-        "/revoke": "/iptal"
-      };
-      document.cookie = "l=tr; path=/; max-age=" + 1e6;
-      window.location.href = sayfalar[window.location.pathname];
-    }
-  }
-};
 
 { // Ağ menüsünü oluştur.
   const ağMenüsü = dom.adla("ncd");
@@ -188,20 +156,15 @@ dom.adla("nld").onclick = (event) => {
     /** @const {string} */
     const ağ = li.id.slice(2);
     if (window["ethereum"])
-      ethereum.request(/** @type {RequestParams} */({
+      ethereum.request(/** @type {ethereum.Request} */({
         method: "wallet_switchEthereumChain",
         params: [{ "chainId": ağ }],
       })).catch(console.log);
   }
 }
 
-if (window["ethereum"]) {
+if (window.ethereum) {
   AdresButonu.onclick = bağla;
-  dom.adla("nad0").onclick = () =>
-    window.location.href = dom.TR ? "/incele" : "/view";
-
-  dom.adla("nad1").onclick = () =>
-    window.location.href = dom.TR ? "/oyla" : "/vote";
 
   dom.adla("nad2").onclick = () => {
     const url = "//debank.com/profile/" + Adres;
@@ -213,32 +176,22 @@ if (window["ethereum"]) {
     window.open(url, "_blank");
   }
 
-  dom.adla("nad4").onclick = () =>
-    window.location.href = dom.TR ? "/iptal" : "/revoke";
-
   ethereum.on("accountsChanged", adresDeğişti);
   ethereum.on("chainChanged", ağDeğişti);
 
   ethereum
-    .request(/** @type {RequestParams} */({ method: "eth_chainId" }))
+    .request(/** @type {ethereum.Request} */({ method: "eth_chainId" }))
     .then(ağDeğişti)
     .catch(console.log);
 
-  ethereum.request(/** @type {RequestParams} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length > 0) adresDeğişti(/** Array<string> */(accounts));
     });
 }
 
 /** @const {Object<string, !Array<string>>} */
-const Paralar = dom.TR ? {
-  "0x1": ["ether", "’den", "’e"],
-  "0xa86a": ["AVAX", "’tan", "’a"],
-  "0x89": ["MATIC", "’ten", "’e"],
-  "0xa4b1": ["ether", "'den", "’e"],
-  "0xfa": ["FTM", "’dan", "’a"],
-  "0x38": ["BNB", "’den", "’ye"],
-} : {
+const Paralar = {
   "0x1": ["ether"],
   "0xa86a": ["AVAX"],
   "0x89": ["MATIC"],

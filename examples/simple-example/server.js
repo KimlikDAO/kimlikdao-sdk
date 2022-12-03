@@ -21,6 +21,6 @@ createServer({
       next(e)
     })
   })
-  console.log(`Ana sayfaya şu adreste çalışıyor: http://localhost:9090`)
+  console.log(`Server running at: http://localhost:9090`)
   app.listen(9090);
 })

@@ -1,7 +1,7 @@
 
-import Cüzdan from './wallet'
-import dom from "../../lib/util/dom"
-import kimlikdao from "../../client/kimlikdao"
+import kimlikdao from "../../client/kimlikdao";
+import dom from "../../lib/util/dom";
+import Wallet from './wallet';
 
 dom.adla("nas").onclick = callHasTckt;
 dom.adla("naz").onclick = callGetInfoSections;
@@ -14,5 +14,5 @@ async function callHasTckt() {
 
 async function callGetInfoSections() {
   console.log("clicked on getInfoSection button!")
-  console.log(await kimlikdao.getInfoSections(Cüzdan.adres(), ["personInfo"]))
+  console.log(await kimlikdao.getInfoSections(Wallet.adres(), ["personInfo"]))
 }

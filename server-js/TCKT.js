@@ -36,7 +36,7 @@ const jsonRpcCall = (url, method, params) => fetch(url, {
  */
 TCKT.prototype.exposureReported = function (humanId) {
   return jsonRpcCall(this.nodeUrls["0xa86a"], 'eth_call', [
-    /** @type {Transaction} */({
+    /** @type {ethereum.Transaction} */({
       to: TCKT_ADDR,
       data: "0x72797221" + humanId
     }), "latest"
@@ -60,7 +60,7 @@ TCKT.prototype.mostRecentCreate = function (chainId, address) {
  */
 TCKT.prototype.handleOf = function (chainId, address) {
   return jsonRpcCall(this.nodeUrls[chainId], 'eth_call', [
-    /** @type {Transaction} */({
+    /** @type {ethereum.Transaction} */({
       to: TCKT_ADDR,
       data: "0x8a591c8a" + evm.address(address)
     }), "latest"
