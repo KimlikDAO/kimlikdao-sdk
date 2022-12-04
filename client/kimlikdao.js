@@ -2,11 +2,11 @@
  * @fileoverview
  */
 
-import { selectUnlockables } from '/lib/did/infoSection';
+import { decryptInfoSections } from '/lib/did/infoSection';
 import evm from "/lib/ethereum/evm";
 import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
-import { hex, hexten } from '/lib/util/çevir';
+import { hexten } from '/lib/util/çevir';
 
 window["kimlikdao"] = {};
 
@@ -31,41 +31,14 @@ kimlikdao.hasTckt = () =>
  * @param {!Array<string>} infoSections
  */
 kimlikdao.getInfoSections = (address, infoSections) =>
-  TCKT.handleOf(address).then((cidHex) =>
-    ipfs.cidBytetanOku(hexten(cidHex)).then(async (data) => {
-      /** @const {!ERC721Unlockable} */
-      const tcktData = /** @const {!ERC721Unlockable} */(JSON.parse(data));
-      /** @const {TextEncoder} */
-      const asciiEncoder = new TextEncoder();
-      /** @const {!Array<!Unlockable>} */
-      const unlockables = selectUnlockables(tcktData, infoSections);
-
-      /** @type {!did.DecryptedDID} */
-      let decryptedTckt = {};
-      for (let i = 0; i < unlockables.length; ++i) {
-        delete unlockables[i].userPrompt;
-        /** @const {string} */
-        const hexEncoded = "0x" +
-          hex(asciiEncoder.encode(JSON.stringify(unlockables[i])));
-        if (i > 0)
-          await new Promise((resolve) => setTimeout(() => resolve(), 100));
-        /** @type {string} */
-        let decryptedText = await ethereum.request(/** @type {ethereum.Request} */({
-          method: "eth_decrypt",
-          params: [hexEncoded, address]
-        }));
-        decryptedText = decryptedText.slice(43, decryptedText.indexOf("\0"));
-        Object.assign(decryptedTckt,
-          /** @type {!did.DecryptedDID} */(JSON.parse(decryptedText)));
-      }
-      /** @const {Set<string>} */
-      const infoSectionSet = new Set(infoSections);
-      for (const infoSection in decryptedTckt)
-        if (!infoSectionSet.has(infoSection)) delete decryptedTckt[infoSection];
-
-      return decryptedTckt;
-    })
-  )
+  TCKT.handleOf(address)
+    .then((cidHex) => ipfs.cidBytetanOku(hexten(cidHex.slice(2))))
+    .then((data) => decryptInfoSections(
+      /** @const {!ERC721Unlockable} */(JSON.parse(data)),
+      infoSections,
+      /** @type {!ethereum.Provider} */(ethereum),
+      address
+    ));
 
 /**
  * @constructor
