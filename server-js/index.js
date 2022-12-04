@@ -6,7 +6,7 @@
  */
 
 /**
- * @param {InfoSection} infoSection
+ * @param {did.InfoSection} infoSection
  * @param {string} chainId
  * @param {string} address
  * @param {string} commitSecret
@@ -17,7 +17,7 @@ const verifyInfoSection = (infoSection, chainId, address, commitSecret) => {
 }
 
 /**
- * @param {AçıkTCKT} decryptedTckt
+ * @param {did.DecryptedDID} decryptedTckt
  * @param {string} chainId
  * @param {string} address
  * @param {string} commitSecret

@@ -35,7 +35,7 @@ kimlikdao.Validator;
  *   challenge: kimlikdao.Challenge,
  *   signature: string,
  *   address: (string|undefined),
- *   decryptedTckt: Object<string, InfoSection>
+ *   decryptedTckt: !did.DecryptedDID
  * }}
  */
 kimlikdao.ValidationRequest;
@@ -51,16 +51,9 @@ kimlikdao.ValidationRequest;
 kimlikdao.hasTckt;
 
 /**
- * @param {!ERC721Unlockable} nft
- * @param {!Array<string>} infoSections
- * @return {!Array<!Unlockable>}
- */
-kimlikdao.selectUnlockables;
-
-/**
  * @param {string} address
  * @param {!Array<string>} infoSections
- * @return {Promise<Object<string, InfoSection>>}
+ * @return {Promise<did.DecryptedDID>}
  */
 kimlikdao.getInfoSections;
 

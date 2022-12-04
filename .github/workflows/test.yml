@@ -21,15 +21,12 @@ jobs:
         with:
           node-version: 18
 
-      - name: client tests
-        run: |
-          yarn
-          make client/test
-
       - name: server-js tests
         run: |
+          yarn
           make server-js/test
 
       - name: Build
         run: |
           make
+          make test

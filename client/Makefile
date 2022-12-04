@@ -1,11 +1,9 @@
-include client/test/Makefile
-
 build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
                            lib/api/edevletApi.js \
-                           lib/ethereum/jsonrpc.js lib/ethereum/provider.js \
+                           lib/ethereum/ERC721Unlockable.js lib/ethereum/jsonrpc.js lib/ethereum/provider.js \
                            lib/ethereum/TCKT.js lib/ethereum/evm.js \
                            lib/crypto/sha3.js \
-                           lib/tckt/TCKTBilgileri.js lib/tckt/ERC721Unlockable.js \
+                           lib/did/types.js lib/did/infoSection.js \
                            lib/util/çevir.js \
                            lib/ipfs.js
 	mkdir -p $(dir $@)

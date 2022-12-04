@@ -9,7 +9,7 @@ export const TCKT_ADDR = "0xcCc0F938A2C94b0fFBa49F257902Be7F56E62cCc";
 /**
  * @constructor
  *
- * @param {Object<string, string>} nodeUrls
+ * @param {!Object<string, string>} nodeUrls
  */
 function TCKT(nodeUrls) {
   this.nodeUrls = nodeUrls;
