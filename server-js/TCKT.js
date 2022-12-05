@@ -46,15 +46,6 @@ TCKT.prototype.exposureReported = function (humanId) {
 /**
  * @param {string} chainId
  * @param {string} address
- * @return {Promise<number>}
- */
-TCKT.prototype.mostRecentCreate = function (chainId, address) {
-  return Promise.resolve(0);
-}
-
-/**
- * @param {string} chainId
- * @param {string} address
  * @return {Promise<string>} the IPFS handle of the address, encoded as a 
  *                           length 66 hex string.
  */

@@ -14,8 +14,4 @@ impl TCKT {
     pub fn exposure_reported(&self, chainId: ChainId, addr: address) -> u64 {
         return 0;
     }
-
-    pub fn mostRecentCreate(&self, chainId: ChainId, addr: address) -> u64 {
-        return 0;
-    }
 }
