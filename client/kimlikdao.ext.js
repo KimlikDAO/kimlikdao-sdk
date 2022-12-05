@@ -1,5 +1,7 @@
 /**
  * @fileoverview
+ *
+ * @author KimlikDAO
  * @externs
  */
 
@@ -60,10 +62,9 @@ kimlikdao.getInfoSections;
 /**
  * Given a list of `InfoSection` names, requests the user to decrypt the
  * info sections and sends the decrypted info sections for validation to
- * the remote `validator`.
+ * the remote `Validator`.
  *
- * The response returned from the validator is parsed as a json file and
- * returned to the caller verbatim.
+ * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {!Array<string>} infoSections
  * @param {!kimlikdao.Validator} validator

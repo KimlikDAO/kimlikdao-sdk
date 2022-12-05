@@ -129,13 +129,13 @@ const adresDeğişince = (f) => {
 const bağla = () => {
   ethereum
     .request(
-      /** @type {ethereum.Request} */({ method: "eth_requestAccounts" }))
+      /** @type {eth.Request} */({ method: "eth_requestAccounts" }))
     .then(adresDeğişti)
     .catch(console.log);
 
   ethereum
     .request(
-      /** @type {ethereum.Request} */({ method: "eth_chainId" }))
+      /** @type {eth.Request} */({ method: "eth_chainId" }))
     .then(ağDeğişti)
     .catch(console.log);
 }
@@ -156,7 +156,7 @@ dom.menüYarat(DilButonu, dom.adla("nld"));
     /** @const {string} */
     const ağ = li.id.slice(2);
     if (window["ethereum"])
-      ethereum.request(/** @type {ethereum.Request} */({
+      ethereum.request(/** @type {eth.Request} */({
         method: "wallet_switchEthereumChain",
         params: [{ "chainId": ağ }],
       })).catch(console.log);
@@ -180,11 +180,11 @@ if (window.ethereum) {
   ethereum.on("chainChanged", ağDeğişti);
 
   ethereum
-    .request(/** @type {ethereum.Request} */({ method: "eth_chainId" }))
+    .request(/** @type {eth.Request} */({ method: "eth_chainId" }))
     .then(ağDeğişti)
     .catch(console.log);
 
-  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length > 0) adresDeğişti(/** Array<string> */(accounts));
     });

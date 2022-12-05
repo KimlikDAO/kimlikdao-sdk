@@ -1,5 +1,7 @@
 /**
  * @fileoverview
+ *
+ * @author KimlikDAO
  */
 
 import { decryptInfoSections } from '/lib/did/infoSection';
@@ -19,7 +21,7 @@ window["kimlikdao"] = {};
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
 kimlikdao.hasTckt = () =>
-  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       return TCKT.handleOf(accounts[0])
@@ -34,9 +36,9 @@ kimlikdao.getInfoSections = (address, infoSections) =>
   TCKT.handleOf(address)
     .then((cidHex) => ipfs.cidBytetanOku(hexten(cidHex.slice(2))))
     .then((data) => decryptInfoSections(
-      /** @const {!ERC721Unlockable} */(JSON.parse(data)),
+      /** @const {!eth.ERC721Unlockable} */(JSON.parse(data)),
       infoSections,
-      /** @type {!ethereum.Provider} */(ethereum),
+      ethereum,
       address
     ));
 
@@ -71,14 +73,14 @@ kimlikdao.Validator = function (url, generateChallenge) {
  * @return {Promise<*>}
  */
 kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
-  ethereum.request(/** @type {ethereum.Request} */({ method: "eth_accounts" }))
+  ethereum.request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((accounts) => {
       if (accounts.length == 0) return Promise.reject();
       const address = accounts[0];
 
       const challengePromise = validateAddress
         ? validator.generateChallenge()
-          .then((challenge) => ethereum.request(/** @type {ethereum.Request} */({
+          .then((challenge) => ethereum.request(/** @type {eth.Request} */({
             method: "personal_sign",
             params: [challenge.text, address]
           })).then((signature) => /** @type {kimlikdao.ValidationRequest} */({
