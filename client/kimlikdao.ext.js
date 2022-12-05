@@ -22,22 +22,33 @@ kimlikdao.Challenge;
  * @constructor
  *
  * @param {string} url
- * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
+ * @param {function():Promise<kimlikdao.Challenge>=} generateChallenge
  */
 kimlikdao.Validator;
+
+/**
+ * A `MerkleProof` is a base64 encoded `Uint8Array` of length 32 * k for
+ * some k. For an `Unlockable` containing k `InfoSection`s the proof is the
+ * concatenation of the sha256 hash of each `InfoSection`.
+ *
+ * @typedef {string}
+ */
+kimlikdao.MerkleProof;
 
 /**
  * A request sent to to a `kimlikdao.Validator` to validate the authenticity of
  * a TCKT.
  *
  * If a `challenge` and a `signature` is provided, the `address` can be
- * omitted.
+ * omitted, since we can recover it from the signature.
  *
  * @typedef {{
  *   challenge: kimlikdao.Challenge,
  *   signature: string,
  *   address: (string|undefined),
- *   decryptedTckt: !did.DecryptedDID
+ *   chainId: string,
+ *   decryptedDid: !did.DecryptedDID,
+ *   merkleProofs: !Object<string, !kimlikdao.MerkleProof>
  * }}
  */
 kimlikdao.ValidationRequest;

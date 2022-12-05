@@ -44,9 +44,9 @@ kimlikdao.getInfoSections = (address, infoSections) =>
 
 /**
  * @constructor
- * 
+ *
  * @param {string} url
- * @param {function():Promise<kimlikdao.Challenge>} generateChallenge
+ * @param {function():Promise<kimlikdao.Challenge>=} generateChallenge
  */
 kimlikdao.Validator = function (url, generateChallenge) {
   this.url = url;
@@ -78,6 +78,9 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
       if (accounts.length == 0) return Promise.reject();
       const address = accounts[0];
 
+      const chainIdPromise = ethereum.request(/** @type {eth.Request} */({
+        method: "eth_chainId"
+      }));
       const challengePromise = validateAddress
         ? validator.generateChallenge()
           .then((challenge) => ethereum.request(/** @type {eth.Request} */({
@@ -89,11 +92,12 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           })))
         : Promise.resolve({ address });
 
-      return challengePromise
-        .then((request) => kimlikdao.getInfoSections(address, infoSections)
+      return Promise.all([challengePromise, chainIdPromise])
+        .then(([request, chainId]) => kimlikdao.getInfoSections(address, infoSections)
           .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
             ...request,
-            decryptedTckt
+            chainId,
+            decryptedDid: decryptedTckt
           }))
         )
         .then((request) => fetch(validator.url, {
