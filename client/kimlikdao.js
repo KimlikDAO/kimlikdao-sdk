@@ -10,8 +10,6 @@ import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
 import { hexten } from '/lib/util/çevir';
 
-window["kimlikdao"] = {};
-
 /**
  * Checks whether the connected address has a TCKT on-chain.
  * Note one may have a TCKT on-chain, but it may not be valid; we can only
@@ -27,20 +25,6 @@ kimlikdao.hasTckt = () =>
       return TCKT.handleOf(accounts[0])
         .then((cidHex) => !!cidHex.slice(2).replaceAll("0", ""));
     })
-
-/**
- * @param {string} address
- * @param {!Array<string>} infoSections
- */
-kimlikdao.getInfoSections = (address, infoSections) =>
-  TCKT.handleOf(address)
-    .then((cidHex) => ipfs.cidBytetanOku(hexten(cidHex.slice(2))))
-    .then((data) => decryptInfoSections(
-      /** @const {!eth.ERC721Unlockable} */(JSON.parse(data)),
-      infoSections,
-      ethereum,
-      address
-    ));
 
 /**
  * @constructor
@@ -78,9 +62,12 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
       if (accounts.length == 0) return Promise.reject();
       const address = accounts[0];
 
+      /** @const {Promise<string>} */
       const chainIdPromise = ethereum.request(/** @type {eth.Request} */({
         method: "eth_chainId"
       }));
+
+      /** @const {Promise<kimlikdao.ValidationRequest>} */
       const challengePromise = validateAddress
         ? validator.generateChallenge()
           .then((challenge) => ethereum.request(/** @type {eth.Request} */({
@@ -92,14 +79,21 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           })))
         : Promise.resolve({ address });
 
-      return Promise.all([challengePromise, chainIdPromise])
-        .then(([request, chainId]) => kimlikdao.getInfoSections(address, infoSections)
-          .then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
-            ...request,
-            chainId,
-            decryptedDid: decryptedTckt
-          }))
-        )
+      /** @type {Promise<string>} */
+      const filePromise = TCKT.handleOf(address)
+        .then((cidHex) => ipfs.cidBytetanOku(hexten(cidHex.slice(2))));
+
+      return Promise.all([challengePromise, chainIdPromise, filePromise])
+        .then(([request, chainId, file]) => decryptInfoSections(
+          /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
+          infoSections,
+          ethereum,
+          address
+        ).then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
+          ...request,
+          chainId,
+          decryptedInfos: decryptedTckt
+        })))
         .then((request) => fetch(validator.url, {
           method: "POST",
           headers: { 'content-type': 'application/json' },

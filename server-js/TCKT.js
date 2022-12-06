@@ -31,14 +31,14 @@ const jsonRpcCall = (url, method, params) => fetch(url, {
  * Note exposure reports are filed only on Avalanche C-chain therefore this
  * method does not take a `chainId`.
  *
- * @param {string} humanId of length 66, hex encoded humanId
+ * @param {string} humanID of length 64, hex encoded humanId
  * @return {Promise<number>} the timestamp of the last exposure report or zero.
  */
-TCKT.prototype.exposureReported = function (humanId) {
+TCKT.prototype.exposureReported = function (humanID) {
   return jsonRpcCall(this.nodeUrls["0xa86a"], 'eth_call', [
     /** @type {eth.Transaction} */({
       to: TCKT_ADDR,
-      data: "0x72797221" + humanId
+      data: "0x72797221" + humanID
     }), "latest"
   ]);
 }
