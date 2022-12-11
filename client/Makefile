@@ -1,7 +1,7 @@
 build/client/kimlikdao.js: client/kimlikdao.js client/kimlikdao.ext.js \
     api/types.js \
     lib/api/edevletApi.js \
-    lib/crypto/sha3.js \
+    lib/crypto/sha3.js lib/crypto/secp256k1.js lib/crypto/modular.js \
     lib/did/types.js lib/did/infoSection.js \
     lib/ethereum/ERC721Unlockable.js lib/ethereum/jsonrpc.js lib/ethereum/provider.js \
     lib/ethereum/TCKT.js lib/ethereum/evm.js lib/ethereum/unlockables.js \

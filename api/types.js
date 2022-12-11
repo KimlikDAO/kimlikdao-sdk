@@ -27,16 +27,17 @@ kimlikdao.Challenge;
  *   address: (string|undefined),
  *   chainId: string,
  *   decryptedInfos: !did.DecryptedInfos,
- *   merkleProof: !Object<string, string>
+ *   merkleProof: !did.MerkleProof
  * }}
  */
 kimlikdao.ValidationRequest;
 
 /**
  * @typedef {{
- *   validity: string,
+ *   result: string,
+ *   error: (string|undefined),
  *   authenticated: boolean,
- *   perInfoSection: Object<string, string>
+ *   perInfoSection: !Object<string, Array<string>>
  * }}
  */
 kimlikdao.ValidationReport;

@@ -4,11 +4,13 @@
  * @author KimlikDAO
  */
 
-import { decryptInfoSections } from '/lib/did/infoSection';
+import { decryptInfosWithMerkleProof } from '/lib/did/infoSection';
 import evm from "/lib/ethereum/evm";
 import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
 import { hexten } from '/lib/util/çevir';
+
+window["kimlikdao"] = {};
 
 /**
  * Checks whether the connected address has a TCKT on-chain.
@@ -81,18 +83,20 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
 
       /** @type {Promise<string>} */
       const filePromise = TCKT.handleOf(address)
-        .then((cidHex) => ipfs.cidBytetanOku(hexten(cidHex.slice(2))));
+        .then((cidHex) => evm.isZero(cidHex)
+          ? Promise.reject("The wallet doesn't have a TCKT")
+          : ipfs.cidBytetanOku(hexten(cidHex.slice(2))));
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])
-        .then(([request, chainId, file]) => decryptInfoSections(
+        .then(([request, chainId, file]) => decryptInfosWithMerkleProof(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           infoSections,
           ethereum,
           address
-        ).then((decryptedTckt) => /** @type {kimlikdao.ValidationRequest} */({
+        ).then((decryptedTcktWithProof) => /** @type {kimlikdao.ValidationRequest} */({
           ...request,
           chainId,
-          decryptedInfos: decryptedTckt
+          ...decryptedTcktWithProof
         })))
         .then((request) => fetch(validator.url, {
           method: "POST",

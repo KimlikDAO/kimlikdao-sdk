@@ -5,42 +5,54 @@
  */
 
 import TCKT from "./TCKT";
-import { keccak256 } from "/lib/crypto/sha3";
+import evm from "/lib/ethereum/evm";
 
 /**
  * @constructor
  *
  * @param {!Object<string, string>} nodeUrls
- * @param {function(kimlikdao.Challenge):Promise<boolean>} validateChallenge
+ * @param {function(kimlikdao.Challenge):Promise<boolean>=} validateChallenge
+ * @param {boolean=} allowUnauthenticated
  */
-function Validator(nodeUrls) {
+function Validator(nodeUrls, validateChallenge, allowUnauthenticated) {
   /** @const {!Object<string, string>} */
   this.nodeUrls = nodeUrls;
   /** @const {TCKT} */
   this.tckt = new TCKT(nodeUrls);
-  /** @const {function(kimlikdao.Challenge):Promise<boolean>} */
+  /**
+   * Record the user provided challenge validator. If none provided, use the
+   * validator for the default challenge generator.
+   * 
+   * @const {function(kimlikdao.Challenge):Promise<boolean>}
+   */
   this.validateChallenge = validateChallenge || ((challenge) => {
     const timestamp = +challenge.nonce;
     const now = Date.now();
-    return Promise.resolve(timestamp < now && timestamp + 6e8 > now &&
+    return Promise.resolve(timestamp < now + 1000 && timestamp + 6e8 > now &&
       challenge.text.endsWith(new Date(timestamp)));
   });
+  /** @const {boolean} */
+  this.allowUnauthenticated = allowUnauthenticated;
 }
-
-const error = (error) => Promise.reject({ validity: error });
 
 /**
  * @param {kimlikdao.ValidationRequest} request
  * @return {Promise<kimlikdao.ValidationReport>}
  */
 Validator.prototype.validate = function (req) {
-  const withAddress = (address, isAuth) => {
-    this.tckt.handleOf(address).then(console.log);
-  }
+  const withAddress = (address, authenticated) => this.tckt.handleOf(address)
+    .then((cidHex) => {
+      if (evm.isZero(cidHex))
+        return Promise.reject(/** @type {kimlikdao.Validationreport} */({
+          result: "fail",
+          authenticated,
+          details: { "contract": ["TCKT was revoked or never created"] }
+        }));
+    });
 
   if (res.challenge) {
-    const address = evm.recoverSigner(
-      keccak256("\x19Ethereum Signed Message:\n" + challenge.text));
+    const address = evm.signerAddress(
+      evm.personalDigest(challenge.text), challenge.signature);
     return this.validateChallenge(req.challenge)
       .then((isValid) => isValid ? withAddress(address, true) : { validity: "-1" });
   } else
@@ -71,4 +83,6 @@ const verifyDecryptedInfos = (decryptedInfos, chainId, address, commitSecret) =>
   return false;
 }
 
-export { Validator };
+export {
+  Validator
+};
