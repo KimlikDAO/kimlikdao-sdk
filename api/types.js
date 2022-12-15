@@ -24,10 +24,10 @@ kimlikdao.Challenge;
  * @typedef {{
  *   challenge: kimlikdao.Challenge,
  *   signature: string,
- *   address: (string|undefined),
+ *   ownerAddress: (string|undefined),
  *   chainId: string,
+ *   contractAddress: string,
  *   decryptedInfos: !did.DecryptedInfos,
- *   merkleProof: !did.MerkleProof
  * }}
  */
 kimlikdao.ValidationRequest;

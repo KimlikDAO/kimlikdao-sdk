@@ -4,7 +4,7 @@
  * @author KimlikDAO
  */
 
-import { decryptInfosWithMerkleProof } from '/lib/did/infoSection';
+import { decryptInfoSections } from '/lib/did/infoSection';
 import evm from "/lib/ethereum/evm";
 import TCKT from "/lib/ethereum/TCKT";
 import ipfs from "/lib/ipfs";
@@ -88,7 +88,7 @@ kimlikdao.validateTckt = (infoSections, validator, validateAddress) =>
           : ipfs.cidBytetanOku(hexten(cidHex.slice(2))));
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])
-        .then(([request, chainId, file]) => decryptInfosWithMerkleProof(
+        .then(([request, chainId, file]) => decryptInfoSections(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           infoSections,
           ethereum,

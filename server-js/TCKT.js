@@ -5,6 +5,7 @@ import evm from "/lib/ethereum/evm";
  * @noinline
  */
 export const TCKT_ADDR = "0xcCc0F938A2C94b0fFBa49F257902Be7F56E62cCc";
+export const TCKT_SIGNERS = "0xcCc05Dc777a5d388be4F165C3182579c9e773cCc";
 
 /**
  * @constructor

@@ -11,12 +11,15 @@ import evm from "/lib/ethereum/evm";
  * @constructor
  *
  * @param {!Object<string, string>} nodeUrls
+ * @param {!Array<string>} acceptedContracts
  * @param {function(kimlikdao.Challenge):Promise<boolean>=} validateChallenge
  * @param {boolean=} allowUnauthenticated
  */
-function Validator(nodeUrls, validateChallenge, allowUnauthenticated) {
+function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthenticated) {
   /** @const {!Object<string, string>} */
   this.nodeUrls = nodeUrls;
+  /** @const {!Set<string>} */
+  this.acceptedContracts = new Set(acceptedContracts || [TCKT_ADDR]);
   /** @const {TCKT} */
   this.tckt = new TCKT(nodeUrls);
   /**
@@ -40,7 +43,7 @@ function Validator(nodeUrls, validateChallenge, allowUnauthenticated) {
  * @return {Promise<kimlikdao.ValidationReport>}
  */
 Validator.prototype.validate = function (req) {
-  const withAddress = (address, authenticated) => this.tckt.handleOf(address)
+  const validateWithAddress = (address, authenticated) => this.tckt.handleOf(address)
     .then((cidHex) => {
       if (evm.isZero(cidHex))
         return Promise.reject(/** @type {kimlikdao.Validationreport} */({
