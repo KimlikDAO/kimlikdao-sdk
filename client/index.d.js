@@ -5,7 +5,13 @@
  * @externs
  */
 
-kimlikdao.Validator;
+/**
+ * @constructor
+ * @param {string} validatorUrl
+ * @param {!eth.Provider=} provider
+ * @param {function():Promise<kimlikdao.Challenge>=} generateChallenge
+ */
+var KimlikDAO;
 
 /**
  * Checks whether the connected address has a TCKT on-chain.
@@ -13,9 +19,10 @@ kimlikdao.Validator;
  * be sure that the TCKT is valid by using the `kimlikdao.validateInfoSection()`
  * method.
  *
+ * @param {string} didContract
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
-kimlikdao.hasTckt;
+KimlikDAO.prototype.hasDID;
 
 /**
  * Given a list of `InfoSection` names, requests the user to decrypt the
@@ -24,9 +31,9 @@ kimlikdao.hasTckt;
  *
  * The response returned from the validator is passed onto the caller verbatim.
  *
+ * @param {string} didContract
  * @param {!Array<string>} infoSections
- * @param {!kimlikdao.Validator} validator
  * @param {boolean} validateAddress
  * @return {Promise<*>}
  */
-kimlikdao.validateTckt;
+KimlikDAO.prototype.validate;
