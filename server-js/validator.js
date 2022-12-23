@@ -1,10 +1,10 @@
 /**
- * @fileoverview A library for verifying a TCKT.
+ * @fileoverview Server side TCKT validator.
  *
  * @author KimlikDAO
  */
 
-import TCKT from "./TCKT";
+import { TCKT } from "./TCKT";
 import evm from "/lib/ethereum/evm";
 
 /**

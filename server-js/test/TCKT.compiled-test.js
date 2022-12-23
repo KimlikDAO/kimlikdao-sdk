@@ -1,4 +1,4 @@
-import TCKT from "../TCKT";
+import { TCKT } from "../TCKT";
 import { assertEq, assertStats } from "/lib/testing/assert";
 
 const testHandleOf = () => {

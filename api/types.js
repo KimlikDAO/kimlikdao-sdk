@@ -25,6 +25,7 @@ kimlikdao.Challenge;
  *   challenge: kimlikdao.Challenge,
  *   signature: string,
  *   ownerAddress: (string|undefined),
+ *   chainId: string,
  *   didContract: string,
  *   decryptedInfos: !did.DecryptedInfos,
  * }}

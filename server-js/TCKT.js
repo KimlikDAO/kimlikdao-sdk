@@ -5,7 +5,12 @@ import evm from "/lib/ethereum/evm";
  * @noinline
  */
 export const TCKT_ADDR = "0xcCc0F938A2C94b0fFBa49F257902Be7F56E62cCc";
-export const TCKT_SIGNERS = "0xcCc05Dc777a5d388be4F165C3182579c9e773cCc";
+
+/**
+ * @const {string}
+ * @noinline
+ */
+export const TCKT_SIGNERS = "0xcCc09aA0d174271259D093C598FCe9Feb2791cCc";
 
 /**
  * @constructor
@@ -32,16 +37,24 @@ const jsonRpcCall = (url, method, params) => fetch(url, {
  * Note exposure reports are filed only on Avalanche C-chain therefore this
  * method does not take a `chainId`.
  *
- * @param {string} humanID of length 64, hex encoded humanId
+ * @param {string} exposureReportID of length 64, hex encoded exposureReportID.
  * @return {Promise<number>} the timestamp of the last exposure report or zero.
  */
-TCKT.prototype.exposureReported = function (humanID) {
+TCKT.prototype.exposureReported = function (exposureReportID) {
   return jsonRpcCall(this.nodeUrls["0xa86a"], 'eth_call', [
     /** @type {eth.Transaction} */({
       to: TCKT_ADDR,
-      data: "0x72797221" + humanID
+      data: "0x72797221" + exposureReportID
     }), "latest"
   ]);
+}
+
+/**
+ * @param {string} address
+ * @return {number}
+ */
+TCKT.lastRevokeTimestamp = function (address) {
+  return 0;
 }
 
 /**
@@ -59,4 +72,4 @@ TCKT.prototype.handleOf = function (chainId, address) {
   ]);
 }
 
-export default TCKT;
+export { TCKT };

@@ -12,27 +12,20 @@ import { hexten } from "/lib/util/çevir";
 
 /**
  * @constructor
- * @param {string} validatorUrl
- * @param {!eth.Provider=} provider
- * @param {function():Promise<kimlikdao.Challenge>=} generateChallenge
+ * @param {KimlikDAO} params
  */
-const KimlikDAO = function (validatorUrl, provider, generateChallenge) {
-  /** @const {string} */
-  this.validatorUrl = validatorUrl;
-  /** @const {!eth.Provider} */
-  this.provider = provider || window.ethereum;
-
-  this.generateChallenge =
-    generateChallenge || (() => {
-      /** @const {number} */
-      const timestamp = Date.now();
-      return Promise.resolve({
-        nonce: "" + timestamp,
-        text:
-          "Please sign to prove you own this account.\n\nTime: " +
-          new Date(timestamp),
-      });
+const KimlikDAO = function (params) {
+  Object.assign(this, params);
+  this.generateChallenge ||= (() => {
+    /** @const {number} */
+    const timestamp = Date.now();
+    return Promise.resolve({
+      nonce: "" + timestamp,
+      text:
+        "Please sign to prove you own this account.\n\nTime: " +
+        new Date(timestamp),
     });
+  });
 
   /** @const {string} */
   this.TCKT = TCKT_ADDR;
@@ -41,13 +34,14 @@ const KimlikDAO = function (validatorUrl, provider, generateChallenge) {
 /**
  * Checks whether the connected address has a TCKT on-chain.
  * Note one may have a TCKT on-chain, but it may not be valid; we can only
- * be sure that the TCKT is valid by using the `kimlikdao.validateTckt()`
- * method.
+ * be sure that the TCKT is valid by using the `kimlikdao.validate()` method.
  *
- * @param {string} didAddress
+ * @param {string} didContract
  * @return {Promise<boolean>} whether the connected wallet has a TCKT.
  */
-KimlikDAO.prototype.hasDID = function (didAddress) {
+KimlikDAO.prototype.hasDID = function (didContract) {
+  if (didContract != TCKT_ADDR)
+    return Promise.reject("The requested DID is not supported yet.");
   return this.provider
     .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
@@ -57,27 +51,29 @@ KimlikDAO.prototype.hasDID = function (didAddress) {
 };
 
 /**
- * Given a list of `InfoSection` names, prompts the user to decrypt the
- * info sections and sends the decrypted info sections for validation to
- * the remote `validator`.
+ * Given a list of `InfoSection` names, prompts the user to decrypt the info
+ * sections and sends the decrypted info sections for validation to the remote
+ * `validator`.
  *
  * The response returned from the validator is passed onto the caller verbatim.
  *
- * @param {string} didAddress
+ * @param {string} didContract
  * @param {!Array<string>} infoSections
- * @param {boolean|undefined} validateAddress
+ * @param {boolean=} validateAddress
  * @return {Promise<*>}
  */
 KimlikDAO.prototype.validate = function (
-  didAddress,
+  didContract,
   infoSections,
   validateAddress
 ) {
+  if (didContract != TCKT_ADDR)
+    return Promise.reject("The requested DID is not supported yet.");
   return this.provider
     .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
-      if (addresses.length == 0) return Promise.reject();
-      const address = addresses[0];
+      if (addresses.length == 0) return Promise.reject("No connected accounts.");
+      const ownerAddress = addresses[0];
       /** @const {Promise<string>} */
       const chainIdPromise = ethereum.request(
         /** @type {eth.Request} */({
@@ -91,18 +87,19 @@ KimlikDAO.prototype.validate = function (
           ethereum
             .request(/** @type {eth.Request} */({
               method: "personal_sign",
-              params: [challenge.text, address],
+              params: [challenge.text, ownerAddress],
             }))
             .then((signature) => /** @type {kimlikdao.ValidationRequest} */({
               challenge,
               signature: evm.compactSignature(signature),
             })))
-        : Promise.resolve({ address });
+        : Promise.resolve(
+          /** @type {kimlikdao.ValidationRequest} */({ ownerAddress }));
 
       /** @type {Promise<string>} */
-      const filePromise = TCKT.handleOf(address).then((cidHex) =>
+      const filePromise = TCKT.handleOf(ownerAddress).then((cidHex) =>
         evm.isZero(cidHex)
-          ? Promise.reject("The wallet doesn't have a TCKT")
+          ? Promise.reject("The wallet doesn't have a TCKT.")
           : ipfs.cidBytetanOku(hexten(cidHex.slice(2)))
       );
 
@@ -112,16 +109,17 @@ KimlikDAO.prototype.validate = function (
             /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
             infoSections,
             ethereum,
-            address
-          ).then((decryptedTcktWithProof) =>
+            ownerAddress
+          ).then((decryptedInfos) =>
               /** @type {kimlikdao.ValidationRequest} */({
             ...request,
             chainId,
-            ...decryptedTcktWithProof,
+            didContract,
+            decryptedInfos,
           })))
         .then((request) => fetch(this.validatorUrl, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json;charset=utf-8" },
           data: JSON.stringify(request),
         }));
     });

@@ -5,13 +5,22 @@
  * @externs
  */
 
-/**
- * @constructor
- * @param {string} validatorUrl
- * @param {!eth.Provider=} provider
- * @param {function():Promise<kimlikdao.Challenge>=} generateChallenge
- */
 var KimlikDAO;
+
+/**
+ * @const {string}
+ */
+KimlikDAO.prototype.validatorUrl;
+
+/**
+ * @const {!eth.Provider}
+ */
+KimlikDAO.prototype.provider;
+
+/**
+ * @type {function():Promise<kimlikdao.Challenge>}
+ */
+KimlikDAO.prototype.generateChallenge;
 
 /**
  * Checks whether the connected address has a TCKT on-chain.
