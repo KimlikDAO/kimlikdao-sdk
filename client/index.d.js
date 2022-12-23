@@ -35,6 +35,16 @@ KimlikDAO.prototype.hasDID;
 
 /**
  * Given a list of `InfoSection` names, requests the user to decrypt the
+ * info sections and returns them without validating with a remote validator.
+ *
+ * @param {string} didContract
+ * @param {!Array<string>} infoSections
+ * @return {Promise<!did.DecryptedInfos>}
+ */
+KimlikDAO.prototype.getUnvalidated;
+
+/**
+ * Given a list of `InfoSection` names, requests the user to decrypt the
  * info sections and sends the decrypted info sections for validation to
  * the remote `Validator`.
  *
@@ -42,7 +52,7 @@ KimlikDAO.prototype.hasDID;
  *
  * @param {string} didContract
  * @param {!Array<string>} infoSections
- * @param {boolean} validateAddress
+ * @param {boolean=} validateOwnerAddress
  * @return {Promise<*>}
  */
-KimlikDAO.prototype.validate;
+KimlikDAO.prototype.getValidated;

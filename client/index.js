@@ -51,6 +51,36 @@ KimlikDAO.prototype.hasDID = function (didContract) {
 };
 
 /**
+ * Given a list of `InfoSection` names, requests the user to decrypt the
+ * info sections and returns them without validating with a remote validator.
+ *
+ * @param {string} didContract
+ * @param {!Array<string>} infoSections
+ * @return {Promise<!did.DecryptedInfos>}
+ */
+KimlikDAO.prototype.getUnvalidated = function (didContract, infoSections) {
+  if (didContract != TCKT_ADDR)
+    return Promise.reject("The requested DID is not supported yet.");
+  return this.provider
+    .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
+    .then((addresses) => {
+      if (addresses.length == 0) return Promise.reject("No connected accounts.");
+      const ownerAddress = addresses[0];
+      return TCKT.handleOf(ownerAddress)
+        .then((cidHex) =>
+          evm.isZero(cidHex)
+            ? Promise.reject("The wallet doesn't have a TCKT.")
+            : ipfs.cidBytetanOku(hexten(cidHex.slice(2))))
+        .then((file) => decryptInfoSections(
+          /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
+          infoSections,
+          ethereum,
+          ownerAddress
+        ))
+    })
+}
+
+/**
  * Given a list of `InfoSection` names, prompts the user to decrypt the info
  * sections and sends the decrypted info sections for validation to the remote
  * `validator`.
@@ -62,7 +92,7 @@ KimlikDAO.prototype.hasDID = function (didContract) {
  * @param {boolean=} validateAddress
  * @return {Promise<*>}
  */
-KimlikDAO.prototype.validate = function (
+KimlikDAO.prototype.getValidated = function (
   didContract,
   infoSections,
   validateAddress

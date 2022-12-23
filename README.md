@@ -3,7 +3,7 @@
 ### Client
 
 To use KimlikDAO SDK in your app, import `@kimlikdao/client`, instantiate it
-and call `kimlikdao.validate()` like so:
+and call `kimlikdao.getValidated()` or `kimlikdao.getUnvalidated()` like so:
 
 ```javascript
 // In the web app
@@ -15,10 +15,10 @@ const kimlikdao = new KimlikDAO({
 });
 
 kimlikdao
-  .validate(kimlikdao.TCKT, ["personInfo", "addressInfo", "contactInfo"])
+  .getValidated(kimlikdao.TCKT, ["personInfo", "addressInfo", "contactInfo"])
   .then((res) => (res.ok ? res.json() : Promise.reject()))
   .then(console.log)
-  .catch(() => console.log("The connected wallet doesn't have a valid TCKT"));
+  .catch(console.log);
 ```
 
 This will

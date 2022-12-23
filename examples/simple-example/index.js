@@ -5,11 +5,15 @@ import Wallet from './wallet';
 /** @const {Element} */
 const HasDIDButton = document.getElementById("se_hasDIDButton");
 /** @const {Element} */
-const ValidateButton = document.getElementById("se_validateButton");
-/** @const {Element} */
 const HasDIDOut = document.getElementById("se_hasDIDOut");
 /** @const {Element} */
-const ValidateOut = document.getElementById("se_validateOut");
+const GetUnvalidatedButton = document.getElementById("se_getUnvalidatedButton");
+/** @const {Element} */
+const GetUnvalidatedOut = document.getElementById("se_getUnvalidatedOut");
+/** @const {Element} */
+const GetValidatedButton = document.getElementById("se_getValidatedButton");
+/** @const {Element} */
+const GetValidatedOut = document.getElementById("se_getValidatedOut");
 
 if (!window.ethereum)
   console.log("Couldn't find a provider.");
@@ -31,12 +35,23 @@ HasDIDButton.onclick = () => {
     .catch(console.log);
 }
 
-ValidateButton.onclick = () => {
-  console.log("Clicked on validate() button!")
-  kimlikdao.validate(kimlikdao.TCKT, ["personInfo"])
+GetUnvalidatedButton.onclick = () => {
+  console.log("Clicked on getUnvalidated() button!")
+  kimlikdao.getUnvalidated(kimlikdao.TCKT, ["personInfo"])
     .then((res) => {
-      const out = "hasDID(): " + res;
-      ValidateOut.innerText = out;
+      const out = "getUnvalidated(): " + res;
+      GetUnvalidatedOut.innerText = out;
+      console.log(out);
+    })
+    .catch(console.log);
+}
+
+GetValidatedButton.onclick = () => {
+  console.log("Clicked on getValidated() button!")
+  kimlikdao.getValidated(kimlikdao.TCKT, ["personInfo"])
+    .then((res) => {
+      const out = "getValidated(): " + res;
+      GetValidatedOut.innerText = out;
       console.log(out);
     })
     .catch(console.log);

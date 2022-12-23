@@ -10,4 +10,17 @@ declare class KimlikDAO {
   generateChallenge: () => Promise<kimlikdao.Challenge>;
 
   constructor(params: KimlikDAO);
+
+  hasDID(didContract: string): Promise<boolean>;
+
+  getUnvalidated(
+    didContract: string,
+    infoSections: string[]
+  ): Promise<did.DecryptedInfos>;
+
+  getValidated(
+    didContract: string,
+    infoSections: string[],
+    validateOwnerAddress?: boolean
+  ): Promise<any>;
 }
