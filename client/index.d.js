@@ -13,6 +13,11 @@ var KimlikDAO;
 KimlikDAO.prototype.validatorUrl;
 
 /**
+ * @const {string}
+ */
+KimlikDAO.prototype.ipfsUrl;
+
+/**
  * @const {!eth.Provider}
  */
 KimlikDAO.prototype.provider;

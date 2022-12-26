@@ -5,7 +5,7 @@ build/client/index.js: client/index.js client/index.d.js \
     lib/did/types.js lib/did/infoSection.js \
     lib/ethereum/ERC721Unlockable.js lib/ethereum/jsonrpc.js lib/ethereum/provider.js \
     lib/ethereum/TCKT.js lib/ethereum/evm.js lib/ethereum/unlockables.js \
-    lib/ipfs.js \
+    lib/node/ipfs.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
 	echo "globalThis['KimlikDAO'] = KimlikDAO;" | cat $< - > $@.tmp

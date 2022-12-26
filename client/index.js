@@ -7,7 +7,7 @@
 import { decryptInfoSections } from "/lib/did/infoSection";
 import evm from "/lib/ethereum/evm";
 import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKT";
-import ipfs from "/lib/ipfs";
+import ipfs from "/lib/node/ipfs";
 import { hexten } from "/lib/util/çevir";
 
 /**
@@ -16,6 +16,11 @@ import { hexten } from "/lib/util/çevir";
  */
 const KimlikDAO = function (params) {
   Object.assign(this, params);
+  if (!this.provider && window["ethereum"])
+    this.provider = window.ethereum;
+
+  this.ipfsUrl ||= "https://ipfs.kimlikdao.org";
+
   this.generateChallenge ||= (() => {
     /** @const {number} */
     const timestamp = Date.now();
@@ -70,7 +75,7 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, infoSections) {
         .then((cidHex) =>
           evm.isZero(cidHex)
             ? Promise.reject("The wallet doesn't have a TCKT.")
-            : ipfs.cidBytetanOku(hexten(cidHex.slice(2))))
+            : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2))))
         .then((file) => decryptInfoSections(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           infoSections,
@@ -130,7 +135,7 @@ KimlikDAO.prototype.getValidated = function (
       const filePromise = TCKT.handleOf(ownerAddress).then((cidHex) =>
         evm.isZero(cidHex)
           ? Promise.reject("The wallet doesn't have a TCKT.")
-          : ipfs.cidBytetanOku(hexten(cidHex.slice(2)))
+          : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2)))
       );
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])

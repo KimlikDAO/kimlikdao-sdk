@@ -11,7 +11,7 @@ import { KimlikDAO } from "@kimlikdao/client";
 
 const kimlikdao = new KimlikDAO({
   validatorUrl: "https://my-awesome-onramp.com/validate",
-  provider: window.ethereum,
+  provider: window.ethereum, // Optional
 });
 
 kimlikdao
@@ -40,7 +40,7 @@ import express from "express";
 const validator = new Validator({
   "0x1": "https://ethereum.publicnode.com",
   "0xa86a": "https://api.avax.network/ext/bc/C/rpc",
-  kimlikdao: "https://node.kimlikdao.org",
+  kimlikdao: "https://node8.kimlikdao.org",
 });
 
 express()
