@@ -14,11 +14,12 @@ const kimlikdao = new KimlikDAO({
   provider: window.ethereum, // Optional
 });
 
-kimlikdao
-  .getValidated(kimlikdao.TCKT, ["personInfo", "addressInfo", "contactInfo"])
-  .then((res) => (res.ok ? res.json() : Promise.reject()))
-  .then(console.log)
-  .catch(console.log);
+// In an async function
+const tckt = await kimlikdao.getValidated(kimlikdao.TCKT, [
+  "personInfo",
+  "addressInfo",
+  "contactInfo",
+]);
 ```
 
 This will
