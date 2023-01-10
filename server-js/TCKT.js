@@ -46,15 +46,28 @@ TCKT.prototype.exposureReported = function (exposureReportID) {
       to: TCKT_ADDR,
       data: "0x72797221" + exposureReportID
     }), "latest"
-  ]);
+  ]).then((hexValue) => parseInt(hexValue, 16));
 }
 
 /**
+ * Given an EVM address, find the most recent revoke timestamp across all
+ * supported chains.
+ *
  * @param {string} address
- * @return {number}
+ * @return {Promise<number>} the last revoke timestamp.
  */
-TCKT.lastRevokeTimestamp = function (address) {
-  return 0;
+TCKT.prototype.lastRevokeTimestamp = function (address) {
+  /** @const {!Array<Promise<number>>} */
+  const promises = Object.values(this.nodeUrls).map((nodeUrl) =>
+    jsonRpcCall(nodeUrl, 'eth_call', [
+        /** @type {!eth.Transaction} */({
+        to: TCKT_ADDR,
+        data: "0x6a0d104e" + evm.address(address)
+      }), "latest"
+    ]).then((hexValue) => parseInt(hexValue, 16))
+  );
+
+  return Promise.all(promises).then((values) => Math.max(...values));
 }
 
 /**
