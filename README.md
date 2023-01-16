@@ -25,7 +25,7 @@ const tckt = await kimlikdao.getValidated(kimlikdao.TCKT, [
 This will
 
 - send the user wallet some signature requests
-- decrypt the specified `InfoSection`s (`personInfo`, `addressInfo`, `contactInfo`)
+- decrypt the specified `did.Section`s (`personInfo`, `addressInfo`, `contactInfo`)
 - send them for validation at the specified url (https://my-awesome-onramp.com/validate) and
 - pass on the response from the validator verbatim.
 
@@ -41,7 +41,7 @@ import express from "express";
 const validator = new Validator({
   "0x1": "https://ethereum.publicnode.com",
   "0xa86a": "https://api.avax.network/ext/bc/C/rpc",
-  kimlikdao: "https://node8.kimlikdao.org",
+  "kimlikdao": "https://ipfs.kimlikdao.org",
 });
 
 express()
@@ -61,7 +61,7 @@ express()
 git clone --recursive https://github.com/KimlikDAO/kimlikdao-sdk
 cd kimlikdao-sdk
 yarn # Install dependencies
-node examples/index
+node examples/simple-example/server
 ```
 
 and navigate to localhost:9090.
