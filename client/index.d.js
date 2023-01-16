@@ -43,8 +43,8 @@ KimlikDAO.prototype.hasDID;
  * info sections and returns them without validating with a remote validator.
  *
  * @param {string} didContract
- * @param {!Array<string>} infoSections
- * @return {Promise<!did.DecryptedInfos>}
+ * @param {!Array<string>} sectionNames
+ * @return {Promise<!did.DecryptedSections>}
  */
 KimlikDAO.prototype.getUnvalidated;
 
@@ -56,8 +56,8 @@ KimlikDAO.prototype.getUnvalidated;
  * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {string} didContract
- * @param {!Array<string>} infoSections
- * @param {boolean=} validateOwnerAddress
+ * @param {!Array<string>} sectionNames
+ * @param {boolean=} skipOwnerValidation
  * @return {Promise<*>}
  */
 KimlikDAO.prototype.getValidated;

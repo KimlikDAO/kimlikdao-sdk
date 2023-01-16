@@ -27,7 +27,7 @@ kimlikdao.Challenge;
  *   ownerAddress: (string|undefined),
  *   chainId: string,
  *   didContract: string,
- *   decryptedInfos: !did.DecryptedInfos,
+ *   decryptedInfos: !did.DecryptedSections,
  * }}
  */
 kimlikdao.ValidationRequest;
