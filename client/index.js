@@ -4,7 +4,7 @@
  * @author KimlikDAO
  */
 
-import { decryptInfoSections } from "/lib/did/infoSection";
+import { decryptSections } from "/lib/did/section";
 import evm from "/lib/ethereum/evm";
 import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKT";
 import ipfs from "/lib/node/ipfs";
@@ -16,6 +16,7 @@ import { hexten } from "/lib/util/çevir";
  */
 const KimlikDAO = function (params) {
   Object.assign(this, params);
+
   if (!this.provider && window["ethereum"])
     this.provider = window.ethereum;
 
@@ -42,7 +43,7 @@ const KimlikDAO = function (params) {
  * be sure that the TCKT is valid by using the `kimlikdao.validate()` method.
  *
  * @param {string} didContract
- * @return {Promise<boolean>} whether the connected wallet has a TCKT.
+ * @return {!Promise<boolean>} whether the connected wallet has a TCKT.
  */
 KimlikDAO.prototype.hasDID = function (didContract) {
   if (didContract != TCKT_ADDR)
@@ -60,29 +61,30 @@ KimlikDAO.prototype.hasDID = function (didContract) {
  * info sections and returns them without validating with a remote validator.
  *
  * @param {string} didContract
- * @param {!Array<string>} infoSections
- * @return {Promise<!did.DecryptedInfos>}
+ * @param {!Array<string>} sectionNames
+ * @return {!Promise<!did.DecryptedSections>}
  */
-KimlikDAO.prototype.getUnvalidated = function (didContract, infoSections) {
+KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
   if (didContract != TCKT_ADDR)
     return Promise.reject("The requested DID is not supported yet.");
   return this.provider
-    .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
+    .request(/** @type {!eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
       if (addresses.length == 0) return Promise.reject("No connected accounts.");
+      /** @const {string} */
       const ownerAddress = addresses[0];
       return TCKT.handleOf(ownerAddress)
         .then((cidHex) =>
           evm.isZero(cidHex)
             ? Promise.reject("The wallet doesn't have a TCKT.")
             : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2))))
-        .then((file) => decryptInfoSections(
+        .then((file) => decryptSections(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
-          infoSections,
+          sectionNames,
           ethereum,
           ownerAddress
-        ))
-    })
+        ));
+    });
 }
 
 /**
@@ -93,14 +95,14 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, infoSections) {
  * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {string} didContract
- * @param {!Array<string>} infoSections
- * @param {boolean=} validateAddress
- * @return {Promise<*>}
+ * @param {!Array<string>} sectionNames
+ * @param {boolean=} skipOwnerValidation
+ * @return {!Promise<*>}
  */
 KimlikDAO.prototype.getValidated = function (
   didContract,
-  infoSections,
-  validateAddress
+  sectionNames,
+  skipOwnerValidation
 ) {
   if (didContract != TCKT_ADDR)
     return Promise.reject("The requested DID is not supported yet.");
@@ -108,30 +110,31 @@ KimlikDAO.prototype.getValidated = function (
     .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
       if (addresses.length == 0) return Promise.reject("No connected accounts.");
+      /** @const {string} */
       const ownerAddress = addresses[0];
-      /** @const {Promise<string>} */
+      /** @const {!Promise<string>} */
       const chainIdPromise = ethereum.request(
         /** @type {eth.Request} */({
           method: "eth_chainId",
         })
       );
 
-      /** @const {Promise<kimlikdao.ValidationRequest>} */
-      const challengePromise = validateAddress
+      /** @const {!Promise<!kimlikdao.ValidationRequest>} */
+      const challengePromise = !skipOwnerValidation
         ? this.generateChallenge().then((challenge) =>
           ethereum
-            .request(/** @type {eth.Request} */({
+            .request(/** @type {!eth.Request} */({
               method: "personal_sign",
               params: [challenge.text, ownerAddress],
             }))
-            .then((signature) => /** @type {kimlikdao.ValidationRequest} */({
+            .then((signature) => /** @type {!kimlikdao.ValidationRequest} */({
               challenge,
               signature: evm.compactSignature(signature),
             })))
         : Promise.resolve(
-          /** @type {kimlikdao.ValidationRequest} */({ ownerAddress }));
+          /** @type {!kimlikdao.ValidationRequest} */({ ownerAddress }));
 
-      /** @type {Promise<string>} */
+      /** @type {!Promise<string>} */
       const filePromise = TCKT.handleOf(ownerAddress).then((cidHex) =>
         evm.isZero(cidHex)
           ? Promise.reject("The wallet doesn't have a TCKT.")
@@ -140,17 +143,17 @@ KimlikDAO.prototype.getValidated = function (
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])
         .then(([request, chainId, file]) =>
-          decryptInfoSections(
+          decryptSections(
             /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
-            infoSections,
+            sectionNames,
             ethereum,
             ownerAddress
-          ).then((decryptedInfos) =>
-              /** @type {kimlikdao.ValidationRequest} */({
+          ).then((decryptedSections) =>
+              /** @type {!kimlikdao.ValidationRequest} */({
             ...request,
             chainId,
             didContract,
-            decryptedInfos,
+            decryptedSections,
           })))
         .then((request) => fetch(this.validatorUrl, {
           method: "POST",
