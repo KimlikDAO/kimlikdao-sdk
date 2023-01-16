@@ -7,6 +7,8 @@ build/server-js/test/TCKT.compiled-test.js: server-js/test/TCKT.compiled-test.js
     lib/util/çevir.js
 	mkdir -p $(dir $@)
 	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
+                             --jscomp_error=strictCheckTypes \
+                             --jscomp_error=unusedLocalVariables \
                              --emit_use_strict \
                              --module_resolution NODE \
                              --assume_function_wrapper \
