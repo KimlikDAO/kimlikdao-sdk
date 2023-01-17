@@ -1,5 +1,5 @@
-import evm from "/lib/ethereum/evm";
 import jsonrpc from "/lib/api/jsonrpc";
+import evm from "/lib/ethereum/evm";
 
 /**
  * @const {string}
@@ -25,20 +25,30 @@ function TCKTSigners(nodeUrls) {
  *                                 sufficient stake as of the `timestamp`.
  */
 TCKTSigners.prototype.validateSigners = function (signers, timestamp) {
-  /** @const {!Promise<!Array<string>>} */
-  const promises = jsonrpc.callMulti(this.nodeUrl['0xa86a'],
-    'eth_call',
-    signers.map((signer) => [/** @type {!eth.Transaction} */({
-      "data": "2796d3f1" + evm.address(signer),
-      "to": TCKT_SIGNERS
-    }),
-      "latest"]));
+  /** @const {!Array<!Array<*>>} */
+  const paramsList = signers.map((signer) => [/** @type {!eth.Transaction} */({
+    data: "0x2796d3f1" + evm.address(signer),
+    to: TCKT_SIGNERS
+  }),
+    "latest"]);
+  paramsList.push([/** @type {!eth.Transaction} */({
+    data: "0x46fc4be1",
+    to: TCKT_SIGNERS
+  }), "latest"], [/** @type {!eth.Transaction} */({
+    data: "0xc8676ec4",
+    to: TCKT_SIGNERS
+  }), "latest"]);
 
-  return Promise.all(promises).then((/** !Array<string> */ signersInfo) => {
+  /** @const {!Promise<!Array<string>>} */
+  return jsonrpc.callMulti(this.nodeUrl['0xa86a'],
+    'eth_call',
+    paramsList
+  ).then((/** !Array<string> */ signersInfo) => {
     /** @type {number} */
-    let signerStakeRemaining = 75_000_000_000;
+    let signerStakeRemaining = parseInt(signersInfo.pop().slice(-12), 16);
     /** @type {number} */
-    let signerCountRemaining = 3;
+    let signerCountRemaining = parseInt(signersInfo.pop().slice(-2), 16);
+
     signersInfo.forEach((signerInfo) => {
       /** @const {number} */
       const endTs = parseInt(signerInfo.slice(26, 38), 16);
@@ -55,4 +65,5 @@ TCKTSigners.prototype.validateSigners = function (signers, timestamp) {
   })
 }
 
-export { TCKTSigners }
+export { TCKTSigners };
+
