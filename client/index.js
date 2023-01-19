@@ -4,7 +4,7 @@
  * @author KimlikDAO
  */
 
-import { decryptSections } from "/lib/did/section";
+import { decryptUnlockableNFT } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
 import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKT";
 import ipfs from "/lib/node/ipfs";
@@ -57,7 +57,7 @@ KimlikDAO.prototype.hasDID = function (didContract) {
 };
 
 /**
- * Given a list of `InfoSection` names, requests the user to decrypt the
+ * Given a list of `did.Section` names, requests the user to decrypt the
  * info sections and returns them without validating with a remote validator.
  *
  * @param {string} didContract
@@ -78,7 +78,7 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
           evm.isZero(cidHex)
             ? Promise.reject("The wallet doesn't have a TCKT.")
             : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2))))
-        .then((file) => decryptSections(
+        .then((file) => decryptUnlockableNFT(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           sectionNames,
           ethereum,
@@ -88,7 +88,7 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
 }
 
 /**
- * Given a list of `InfoSection` names, prompts the user to decrypt the info
+ * Given a list of `did.Section` names, prompts the user to decrypt the info
  * sections and sends the decrypted info sections for validation to the remote
  * `validator`.
  *
@@ -143,13 +143,13 @@ KimlikDAO.prototype.getValidated = function (
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])
         .then(([request, chainId, file]) =>
-          decryptSections(
+          decryptUnlockableNFT(
             /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
             sectionNames,
             ethereum,
             ownerAddress
           ).then((decryptedSections) =>
-              /** @type {!kimlikdao.ValidationRequest} */({
+            /** @type {!kimlikdao.ValidationRequest} */({
             ...request,
             chainId,
             didContract,

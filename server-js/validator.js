@@ -63,29 +63,6 @@ Validator.prototype.validate = function (req) {
       : { validity: "-2" }
 }
 
-/**
- * @param {did.InfoSection} infoSection
- * @param {string} chainId
- * @param {string} address
- * @param {string} commitSecret
- * @return {boolean} whether the info section has a valid signature.
- */
-const verifyInfoSection = (infoSection, chainId, address, commitSecret) => {
-  return false;
-}
-
-/**
- * @param {did.DecryptedInfos} decryptedTckt
- * @param {string} chainId
- * @param {string} address
- * @param {string} commitSecret
- * @return {boolean} whether each info section of the decrypted TCKT has a
- *                   valid signature.
- */
-const verifyDecryptedInfos = (decryptedInfos, chainId, address, commitSecret) => {
-  return false;
-}
-
 export {
   Validator
 };

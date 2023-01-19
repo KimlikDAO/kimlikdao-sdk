@@ -30,7 +30,7 @@ KimlikDAO.prototype.generateChallenge;
 /**
  * Checks whether the connected address has a TCKT on-chain.
  * Note one may have a TCKT on-chain, but it may not be valid; we can only
- * be sure that the TCKT is valid by using the `kimlikdao.validateInfoSection()`
+ * be sure that the TCKT is valid by using the `kimlikdao.getValidated()`
  * method.
  *
  * @param {string} didContract
@@ -39,7 +39,7 @@ KimlikDAO.prototype.generateChallenge;
 KimlikDAO.prototype.hasDID;
 
 /**
- * Given a list of `InfoSection` names, requests the user to decrypt the
+ * Given a list of `did.Section` names, requests the user to decrypt the
  * info sections and returns them without validating with a remote validator.
  *
  * @param {string} didContract
@@ -49,7 +49,7 @@ KimlikDAO.prototype.hasDID;
 KimlikDAO.prototype.getUnvalidated;
 
 /**
- * Given a list of `InfoSection` names, requests the user to decrypt the
+ * Given a list of `did.Section` names, requests the user to decrypt the
  * info sections and sends the decrypted info sections for validation to
  * the remote `Validator`.
  *

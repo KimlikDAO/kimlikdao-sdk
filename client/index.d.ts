@@ -15,12 +15,12 @@ declare class KimlikDAO {
 
   getUnvalidated(
     didContract: string,
-    infoSections: string[]
+    sectionNames: string[]
   ): Promise<did.DecryptedInfos>;
 
   getValidated(
     didContract: string,
-    infoSections: string[],
+    sectionNames: string[],
     validateOwnerAddress?: boolean
   ): Promise<any>;
 }

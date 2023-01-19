@@ -18,6 +18,13 @@ function TCKTSigners(nodeUrls) {
 }
 
 /**
+ * A mapping from a section name to a list of purported signer addresses.
+ *
+ * @typedef {!Object<string, !Array<string>>}
+ */
+const SectionSigners = {};
+
+/**
  * @param {!Array<string>} signers an array of claimed signer addresses,
  *                                 each starting with 0x.
  * @param {number} timestamp
@@ -65,5 +72,10 @@ TCKTSigners.prototype.validateSigners = function (signers, timestamp) {
   })
 }
 
-export { TCKTSigners };
+/**
+ * @param {!SectionSigners} sectionSigners
+ * @param {number} timestamp
+ */
+TCKTSigners.prototype.validateSectionSigners = function () {}
 
+export { TCKTSigners, SectionSigners };
