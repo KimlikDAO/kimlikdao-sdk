@@ -109,6 +109,7 @@ TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddres
       if (signerStake < signerStakeNeeded)
         errors.push(err(ErrorCode.INSUFFICIENT_SIGNER_STAKE));
 
+      validationReport.isValid &&= errors.length == 0;
       validationReport.perSection[key] = /** @type {!kimlikdao.SectionReport} */({
         isValid: errors.length == 0,
         errors
