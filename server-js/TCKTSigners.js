@@ -1,6 +1,6 @@
 import { err, ErrorCode } from "/api/error";
 import jsonrpc from "/lib/api/jsonrpc";
-import { recoverSigners } from "/lib/did/decryptedSections";
+import { recoverSectionSigners } from "/lib/did/section";
 import evm from "/lib/ethereum/evm";
 
 /**
@@ -25,12 +25,13 @@ function TCKTSigners(nodeUrls) {
  * @return {!Promise<!kimlikdao.ValidationReport>}
  */
 TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddress) {
-  /** @const {!did.SignersPerSection} */
-  const signersPerSection = recoverSigners(decryptedSections, ownerAddress);
   /** @const {!Set<string>} */
   const allSigners = new Set();
-  for (const key in signersPerSection) {
-    const signers = signersPerSection[key]
+  /** @const {!Object<string, !Array<string>>} */
+  const signersPerSection = {};
+  for (const key in decryptedSections) {
+    const signers = recoverSectionSigners(key, decryptedSections[key], ownerAddress);
+    signersPerSection[key] = signers;
     for (const signer in signers)
       allSigners.add(signer);
   }
