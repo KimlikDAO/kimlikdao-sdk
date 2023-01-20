@@ -1,9 +1,9 @@
-import { ErrorCode, err } from "./error";
+import { err, ErrorCode } from "./error";
 
 /**
- * @param {!ErrorCode} report
+ * @param {!ErrorCode} code
  * @param {!Array<string>=} details
- * @return {!Promise<*>}
+ * @return {!Promise<!kimlikdao.ValidationReport>}
  */
 const reportError = (code, details) =>
   Promise.resolve(/** @type {!kimlikdao.ValidationReport} */({
@@ -11,4 +11,4 @@ const reportError = (code, details) =>
     errors: [err(code, details)]
   }))
 
-export { reportErrorCode };
+export { reportError };

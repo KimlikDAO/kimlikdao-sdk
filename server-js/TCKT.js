@@ -1,5 +1,5 @@
-import evm from "/lib/ethereum/evm";
 import jsonrpc from "/lib/api/jsonrpc";
+import evm from "/lib/ethereum/evm";
 
 /**
  * @const {string}
@@ -71,4 +71,4 @@ TCKT.prototype.handleOf = function (chainId, address) {
   ]));
 }
 
-export { TCKT };
+export { TCKT, TCKT_ADDR };

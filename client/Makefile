@@ -20,3 +20,6 @@ build/client/index.js: client/index.js client/index.d.js \
                              --js $@.tmp $(filter-out $<,$^) \
                              --js_output_file $@
 	yarn uglifyjs $@ -m -o $@
+
+.PHONY: client
+client: build/client/index.js

@@ -4,8 +4,8 @@
  * @author KimlikDAO
  */
 
-import { TCKT } from "./TCKT";
-import { TCKTSigners} from "./TCKTSigners";
+import { TCKT, TCKT_ADDR } from "./TCKT";
+import { TCKTSigners } from "./TCKTSigners";
 import { err, ErrorCode } from "/api/error";
 import { reportError } from "/api/validationReport";
 import evm from "/lib/ethereum/evm";
@@ -37,12 +37,13 @@ function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthen
    */
   this.validateChallenge = validateChallenge || ((challenge) => {
     const timestamp = +challenge.nonce;
+    /** @const {number} */
     const now = Date.now();
     return Promise.resolve(timestamp < now + 1000 && timestamp + 6e8 > now &&
-      challenge.text.endsWith(new Date(timestamp)));
+      challenge.text.endsWith("" + new Date(timestamp)));
   });
   /** @const {boolean} */
-  this.allowUnauthenticated = allowUnauthenticated;
+  this.allowUnauthenticated = allowUnauthenticated || false;
 }
 
 /**
@@ -56,13 +57,18 @@ Validator.prototype.validateWithAddress = function (ownerAddress, isAuthenticate
   const promises = [
     this.tckt.lastRevokeTimestamp(ownerAddress),
     decryptedSections["personInfo"]
-      ? this.tckt.exposureReported(decryptedSections["personInfo"]["exposureReportID"])
+      ? this.tckt.exposureReported(
+        /** @type {!did.PersonInfo} */(decryptedSections["personInfo"]).exposureReportID)
       : Promise.resolve(0),
     this.tcktSigners.validateSigners(decryptedSections, ownerAddress),
   ];
 
   return Promise.all(promises)
-    .then(([lastRevokeTs, exposureReportedTs, validationReport]) => {
+    .then(([
+      /** @type {number} */ lastRevokeTs,
+      /** @type {number} */ exposureReportedTs,
+      /** @type {!kimlikdao.ValidationReport} */ validationReport
+    ]) => {
       /** @type {boolean} */
       let isValid = true;
       for (const key in decryptedSections) {
@@ -82,7 +88,7 @@ Validator.prototype.validateWithAddress = function (ownerAddress, isAuthenticate
         }
       }
       validationReport.isAuthenticated = isAuthenticated;
-      validationReport.isValid &= isValid;
+      validationReport.isValid &&= isValid;
       return validationReport;
     });
 }
@@ -99,9 +105,12 @@ Validator.prototype.validate = function (request) {
   if (request.challenge) {
     /** @const {!kimlikdao.Challenge} */
     const challenge = request.challenge;
+    if (!request.signature)
+      return reportError(ErrorCode.MISSING_SIGNATURE,
+        ["If a challenge is provided, a corresponding signature is required"]);
     /** @const {string} */
     const ownerAddress = evm.signerAddress(
-      evm.personalDigest(challenge.text), challenge.signature);
+      evm.personalDigest(challenge.text), request.signature);
     return this.validateChallenge(challenge)
       .then((isFresh) => isFresh
         ? this.validateWithAddress(ownerAddress, true, request.decryptedSections)
@@ -109,9 +118,9 @@ Validator.prototype.validate = function (request) {
   } else {
     if (!this.allowUnauthenticated)
       return reportError(ErrorCode.UNAUTHENTICATED_NOT_ALLOWED);
-    if (!challenge.address)
+    if (!request.ownerAddress)
       return reportError(ErrorCode.OWNER_ADDRESS_MISSING);
-    return withAddress(challenge.address, false, request.decryptedSections);
+    return this.validateWithAddress(request.ownerAddress, false, request.decryptedSections);
   }
 }
 

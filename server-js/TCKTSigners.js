@@ -1,3 +1,4 @@
+import { err, ErrorCode } from "/api/error";
 import jsonrpc from "/lib/api/jsonrpc";
 import { recoverSigners } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
@@ -49,39 +50,68 @@ TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddres
     to: TCKT_SIGNERS
   }), "latest"]);
 
-  /** @const {!Promise<!Array<string>>} */
-  return jsonrpc.callMulti(this.nodeUrl['0xa86a'],
+  return jsonrpc.callMulti(this.nodeUrls['0xa86a'],
     'eth_call',
     paramsList
-  ).then((/** !Array<string> */ signersInfo) => {
+  ).then((/** !Array<string> */ signersInfoHex) => {
     /** @const {number} */
-    const signerStakeNeeded = parseInt(signersInfo.pop().slice(-12), 16);
+    const signerStakeNeeded = parseInt(signersInfoHex.pop().slice(-12), 16);
     /** @const {number} */
-    const signerCountNeeded = parseInt(signersInfo.pop().slice(-2), 16);
+    const signerCountNeeded = parseInt(signersInfoHex.pop().slice(-2), 16);
 
     /**
-     * @const {!Object<string, {
+     * @typedef {{
      *   endTs: number,
      *   startTs: number,
-     *   deposit: number,
-     * }>}
+     *   deposit: number
+     * }}
+     */
+    const SignerInfo = {};
+
+    /**
+     * @const {!Object<string, !SignerInfo>}
      */
     const signerToInfo = {};
 
     for (let i = 0; i < allSignersList.length; ++i)
-      signerToInfo[allSignersList[i]] = {
-        endTs: parseInt(signersInfo[i].slice(26, 38), 16),
-        startTs: parseInt(signersInfo[i].slice(-12), 16),
-        deposit: parseInt(signersInfo[i].slice(38, 50), 16)
-      };
+      signerToInfo[allSignersList[i]] = /** @const {!SignerInfo} */({
+        endTs: parseInt(signersInfoHex[i].slice(26, 38), 16),
+        startTs: parseInt(signersInfoHex[i].slice(-12), 16),
+        deposit: parseInt(signersInfoHex[i].slice(38, 50), 16)
+      });
     /** @const {!kimlikdao.ValidationReport} */
     const validationReport = {
       isValid: true,
+      isAuthenticated: false,
+      errors: [],
       perSection: {}
     };
     for (const key in signersPerSection) {
-      const ts = decryptedSections[key].signatureTs || 0;
-      // TODO(0x471): Sum deposit balance. Count valid signers. Validate against needed numbers.
+      /** @const {number} */
+      const ts = decryptedSections[key].signatureTs;
+      /** @type {number} */
+      let signerCount = 0;
+      /** @type {number} */
+      let signerStake = 0;
+      for (const signer in signersPerSection[key]) {
+        /** @type {!SignerInfo} */
+        const si = signerToInfo[signer];
+        if (si.startTs < ts && (si.endTs == 0 || ts < si.endTs)) {
+          signerCount += 1;
+          signerStake += si.deposit;
+        }
+      }
+      /** @const {!Array<!kimlikdao.Error>} */
+      const errors = [];
+      if (signerCount < signerCountNeeded)
+        errors.push(err(ErrorCode.INSUFFICIENT_SIGNER_COUNT));
+      if (signerStake < signerStakeNeeded)
+        errors.push(err(ErrorCode.INSUFFICIENT_SIGNER_STAKE));
+
+      validationReport.perSection[key] = /** @type {!kimlikdao.SectionReport} */({
+        isValid: errors.length == 0,
+        errors
+      })
     }
     return validationReport;
   })
