@@ -41,16 +41,18 @@ import express from "express";
 const validator = new Validator({
   "0x1": "https://ethereum.publicnode.com",
   "0xa86a": "https://api.avax.network/ext/bc/C/rpc",
-  "kimlikdao": "https://ipfs.kimlikdao.org",
+  ipfs: "https://ipfs.kimlikdao.org",
 });
 
 express()
   .use(express.json())
   .post("/validate", (req, res) => {
-    validator.validate(req.body).then((result) => {
-      if (result.success) myDb.write(res.body);
-      res.send(result);
-    });
+    validator
+      .validate(/** @type {!kimlikdao.ValidationRequest} */(req.body))
+      .then((/** @type {!kimlikdao.ValidationReport} */ report) => {
+        if (report.isValid) myDb.write(res.body);
+        res.send(report);
+      });
   })
   .listen(8787);
 ```

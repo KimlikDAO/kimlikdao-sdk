@@ -4,7 +4,7 @@
  * @author KimlikDAO
  */
 
-import { decryptUnlockableNFT } from "/lib/did/decryptedSections";
+import { fromUnlockableNFT } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
 import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKT";
 import ipfs from "/lib/node/ipfs";
@@ -78,7 +78,7 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
           evm.isZero(cidHex)
             ? Promise.reject("The wallet doesn't have a TCKT.")
             : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2))))
-        .then((file) => decryptUnlockableNFT(
+        .then((file) => fromUnlockableNFT(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           sectionNames,
           ethereum,
@@ -143,7 +143,7 @@ KimlikDAO.prototype.getValidated = function (
 
       return Promise.all([challengePromise, chainIdPromise, filePromise])
         .then(([request, chainId, file]) =>
-          decryptUnlockableNFT(
+          fromUnlockableNFT(
             /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
             sectionNames,
             ethereum,

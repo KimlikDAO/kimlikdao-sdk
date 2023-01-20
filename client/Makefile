@@ -1,5 +1,5 @@
 build/client/index.js: client/index.js client/index.d.js \
-    api/types.d.js \
+    api/*.d.js \
     lib/crypto/sha3.js lib/crypto/secp256k1.js lib/crypto/modular.js \
     lib/did/*.d.js lib/did/section.js lib/did/decryptedSections.js \
     lib/ethereum/*.d.js lib/ethereum/TCKT.js \

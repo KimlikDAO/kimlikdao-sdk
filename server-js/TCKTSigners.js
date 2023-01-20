@@ -1,4 +1,5 @@
 import jsonrpc from "/lib/api/jsonrpc";
+import { recoverSigners } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
 
 /**
@@ -18,31 +19,33 @@ function TCKTSigners(nodeUrls) {
 }
 
 /**
- * A mapping from a section name to a list of purported signer addresses.
- *
- * @typedef {!Object<string, !Array<string>>}
+ * @param {!did.DecryptedSections} decryptedSections
+ * @param {string} ownerAddress
+ * @return {!Promise<!kimlikdao.ValidationReport>}
  */
-const SectionSigners = {};
-
-/**
- * @param {!Array<string>} signers an array of claimed signer addresses,
- *                                 each starting with 0x.
- * @param {number} timestamp
- * @return {!Promise<boolean>}     whether a large enough set of signers had
- *                                 sufficient stake as of the `timestamp`.
- */
-TCKTSigners.prototype.validateSigners = function (signers, timestamp) {
+TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddress) {
+  /** @const {!did.SignersPerSection} */
+  const signersPerSection = recoverSigners(decryptedSections, ownerAddress);
+  /** @const {!Set<string>} */
+  const allSigners = new Set();
+  for (const key in signersPerSection) {
+    const signers = signersPerSection[key]
+    for (const signer in signers)
+      allSigners.add(signer);
+  }
+  /** @const {!Array<string>} */
+  const allSignersList = [...allSigners];
   /** @const {!Array<!Array<*>>} */
-  const paramsList = signers.map((signer) => [/** @type {!eth.Transaction} */({
+  const paramsList = allSignersList.map((signer) => [/** @type {!eth.Transaction} */({
     data: "0x2796d3f1" + evm.address(signer),
     to: TCKT_SIGNERS
   }),
     "latest"]);
   paramsList.push([/** @type {!eth.Transaction} */({
-    data: "0x46fc4be1",
+    data: "0x46fc4be1", // signerCountNeeded()
     to: TCKT_SIGNERS
   }), "latest"], [/** @type {!eth.Transaction} */({
-    data: "0xc8676ec4",
+    data: "0xc8676ec4", // signerStakeNeeded()
     to: TCKT_SIGNERS
   }), "latest"]);
 
@@ -51,31 +54,37 @@ TCKTSigners.prototype.validateSigners = function (signers, timestamp) {
     'eth_call',
     paramsList
   ).then((/** !Array<string> */ signersInfo) => {
-    /** @type {number} */
-    let signerStakeRemaining = parseInt(signersInfo.pop().slice(-12), 16);
-    /** @type {number} */
-    let signerCountRemaining = parseInt(signersInfo.pop().slice(-2), 16);
+    /** @const {number} */
+    const signerStakeNeeded = parseInt(signersInfo.pop().slice(-12), 16);
+    /** @const {number} */
+    const signerCountNeeded = parseInt(signersInfo.pop().slice(-2), 16);
 
-    signersInfo.forEach((signerInfo) => {
-      /** @const {number} */
-      const endTs = parseInt(signerInfo.slice(26, 38), 16);
-      /** @const {number} */
-      const deposit = parseInt(signerInfo.slice(38, 50), 16);
-      /** @const {number} */
-      const startTs = parseInt(signerInfo.slice(-12), 16);
-      if (startTs < timestamp && (endTs == 0 || timestamp < endTs)) {
-        signerStakeRemaining -= deposit;
-        signerCountRemaining -= 1;
-      }
-    });
-    return signerCountRemaining <= 0 && signerStakeRemaining <= 0;
+    /**
+     * @const {!Object<string, {
+     *   endTs: number,
+     *   startTs: number,
+     *   deposit: number,
+     * }>}
+     */
+    const signerToInfo = {};
+
+    for (let i = 0; i < allSignersList.length; ++i)
+      signerToInfo[allSignersList[i]] = {
+        endTs: parseInt(signersInfo[i].slice(26, 38), 16),
+        startTs: parseInt(signersInfo[i].slice(-12), 16),
+        deposit: parseInt(signersInfo[i].slice(38, 50), 16)
+      };
+    /** @const {!kimlikdao.ValidationReport} */
+    const validationReport = {
+      isValid: true,
+      perSection: {}
+    };
+    for (const key in signersPerSection) {
+      const ts = decryptedSections[key].signatureTs || 0;
+      // TODO(0x471): Sum deposit balance. Count valid signers. Validate against needed numbers.
+    }
+    return validationReport;
   })
 }
 
-/**
- * @param {!SectionSigners} sectionSigners
- * @param {number} timestamp
- */
-TCKTSigners.prototype.validateSectionSigners = function () {}
-
-export { TCKTSigners, SectionSigners };
+export { TCKTSigners };
