@@ -5,27 +5,17 @@
  * @externs
  */
 
+/**
+ * @typedef {{
+ *   validatorUrl: string,
+ *   ipfsUrl: (string|undefined),
+ *   provider: (!eth.Provider|undefined),
+ *   generateChallenge: (function():Promise<kimlikdao.Challenge>|undefined),
+ * }}
+ */
+kimlikdao.Params;
+
 var KimlikDAO;
-
-/**
- * @const {string}
- */
-KimlikDAO.prototype.validatorUrl;
-
-/**
- * @const {string}
- */
-KimlikDAO.prototype.ipfsUrl;
-
-/**
- * @const {!eth.Provider}
- */
-KimlikDAO.prototype.provider;
-
-/**
- * @type {function():Promise<kimlikdao.Challenge>}
- */
-KimlikDAO.prototype.generateChallenge;
 
 /**
  * Checks whether the connected address has a TCKT on-chain.

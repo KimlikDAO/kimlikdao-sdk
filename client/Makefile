@@ -8,7 +8,7 @@ build/client/index.js: client/index.js client/index.d.js \
     lib/node/nvi.d.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
-	echo "globalThis['KimlikDAO'] = KimlikDAO;" | cat $< - > $@.tmp
+	echo "globalThis['exports'] = {'KimlikDAO':KimlikDAO};" | cat $< - > $@.tmp
 	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
                              --jscomp_warning=strictCheckTypes \
                              --jscomp_error=unusedLocalVariables \
@@ -20,6 +20,7 @@ build/client/index.js: client/index.js client/index.d.js \
                              --js $@.tmp $(filter-out $<,$^) \
                              --js_output_file $@
 	yarn uglifyjs $@ -m -o $@
+	sed -i.bak 's/globalThis.exports=/export/g' $@
 
 .PHONY: client
 client: build/client/index.js

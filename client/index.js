@@ -12,17 +12,19 @@ import { hexten } from "/lib/util/çevir";
 
 /**
  * @constructor
- * @param {KimlikDAO} params
+ * @struct
+ *
+ * @param {!kimlikdao.Params} params
  */
 const KimlikDAO = function (params) {
-  Object.assign(this, params);
-
-  if (!this.provider && window["ethereum"])
-    this.provider = window.ethereum;
-
-  this.ipfsUrl ||= "https://ipfs.kimlikdao.org";
-
-  this.generateChallenge ||= (() => {
+  /** @const {string} */
+  this.validatorUrl = params.validatorUrl;
+  /** @const {!eth.Provider} */
+  this.provider = params.provider || window.ethereum;
+  /** @const {string} */
+  this.ipfsUrl = params.ipfsUrl || "https://ipfs.kimlikdao.org";
+  /** @const {function():Promise<!kimlikdao.Challenge>} */
+  this.generateChallenge = params.generateChallenge || (() => {
     /** @const {number} */
     const timestamp = Date.now();
     return Promise.resolve({
@@ -32,7 +34,6 @@ const KimlikDAO = function (params) {
         new Date(timestamp),
     });
   });
-
   /** @const {string} */
   this.TCKT = TCKT_ADDR;
 };
