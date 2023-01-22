@@ -1,7 +1,7 @@
-import { err, ErrorCode } from "/api/error";
-import jsonrpc from "/lib/api/jsonrpc";
-import { recoverSectionSigners } from "/lib/did/section";
-import evm from "/lib/ethereum/evm";
+import { err, ErrorCode } from "../api/error";
+import jsonrpc from "../lib/api/jsonrpc";
+import { recoverSectionSigners } from "../lib/did/section";
+import evm from "../lib/ethereum/evm";
 
 /**
  * @const {string}

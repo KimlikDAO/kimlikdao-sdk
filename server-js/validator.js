@@ -6,9 +6,9 @@
 
 import { TCKT, TCKT_ADDR } from "./TCKT";
 import { TCKTSigners } from "./TCKTSigners";
-import { err, ErrorCode } from "/api/error";
-import { reportError } from "/api/validationReport";
-import evm from "/lib/ethereum/evm";
+import { err, ErrorCode } from "../api/error";
+import { reportError } from "../api/validationReport";
+import evm from "../lib/ethereum/evm";
 
 /**
  * @constructor
