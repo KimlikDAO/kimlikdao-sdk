@@ -6,7 +6,7 @@
 
 import { fromUnlockableNFT } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
-import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKT";
+import TCKT, { TCKT_ADDR } from "/lib/ethereum/TCKTLite";
 import ipfs from "/lib/node/ipfs";
 import { hexten } from "/lib/util/çevir";
 
@@ -50,7 +50,7 @@ KimlikDAO.prototype.hasDID = function (didContract) {
   if (didContract != TCKT_ADDR)
     return Promise.reject("The requested DID is not supported yet.");
   return this.provider
-    .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
+    .request(/** @type {!eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
       if (addresses.length == 0) return Promise.reject();
       return TCKT.handleOf(addresses[0]).then((cidHex) => evm.isZero(cidHex));
@@ -108,14 +108,14 @@ KimlikDAO.prototype.getValidated = function (
   if (didContract != TCKT_ADDR)
     return Promise.reject("The requested DID is not supported yet.");
   return this.provider
-    .request(/** @type {eth.Request} */({ method: "eth_accounts" }))
+    .request(/** @type {!eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
       if (addresses.length == 0) return Promise.reject("No connected accounts.");
       /** @const {string} */
       const ownerAddress = addresses[0];
       /** @const {!Promise<string>} */
       const chainIdPromise = ethereum.request(
-        /** @type {eth.Request} */({
+        /** @type {!eth.Request} */({
           method: "eth_chainId",
         })
       );
