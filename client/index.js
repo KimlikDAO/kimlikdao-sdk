@@ -14,28 +14,19 @@ import { hexten } from "/lib/util/çevir";
  * @constructor
  * @struct
  *
- * @param {!kimlikdao.Params} params
- */
+ * @param {{
+*   validatorUrl: (string|undefined),
+*   ipfsUrl: (string|undefined),
+*   provider: (!eth.Provider|undefined)
+* }} params
+*/
 const KimlikDAO = function (params) {
   /** @const {string} */
-  this.validatorUrl = params.validatorUrl;
+  this.validatorUrl = params.validatorUrl || "";
   /** @const {!eth.Provider} */
   this.provider = params.provider || window.ethereum;
   /** @const {string} */
   this.ipfsUrl = params.ipfsUrl || "https://ipfs.kimlikdao.org";
-  /** @const {function():Promise<!kimlikdao.Challenge>} */
-  this.generateChallenge = params.generateChallenge || (() => {
-    /** @const {number} */
-    const timestamp = Date.now();
-    return Promise.resolve({
-      nonce: "" + timestamp,
-      text:
-        "Please sign to prove you own this account.\n\nTime: " +
-        new Date(timestamp),
-    });
-  });
-  /** @const {string} */
-  this.TCKT = TCKT_ADDR;
 };
 
 /**
@@ -53,7 +44,7 @@ KimlikDAO.prototype.hasDID = function (didContract) {
     .request(/** @type {!eth.Request} */({ method: "eth_accounts" }))
     .then((addresses) => {
       if (addresses.length == 0) return Promise.reject();
-      return TCKT.handleOf(addresses[0]).then((cidHex) => evm.isZero(cidHex));
+      return TCKT.handleOf(addresses[0]).then((cidHex) => !evm.isZero(cidHex));
     });
 };
 
@@ -82,7 +73,7 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
         .then((file) => fromUnlockableNFT(
           /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
           sectionNames,
-          ethereum,
+          this.provider,
           ownerAddress
         ));
     });
@@ -97,13 +88,15 @@ KimlikDAO.prototype.getUnvalidated = function (didContract, sectionNames) {
  *
  * @param {string} didContract
  * @param {!Array<string>} sectionNames
- * @param {boolean=} skipOwnerValidation
- * @return {!Promise<*>}
+ * @param {(function(!did.DecryptedSections):(
+ *   !kimlikdao.Challenge|
+ *   !Promise<!kimlikdao.Challenge>))=} getChallenge
+ * @return {!Promise<!kimlikdao.ValidationRequest>}
  */
-KimlikDAO.prototype.getValidated = function (
+KimlikDAO.prototype.getValidationRequest = function (
   didContract,
   sectionNames,
-  skipOwnerValidation
+  getChallenge
 ) {
   if (didContract != TCKT_ADDR)
     return Promise.reject("The requested DID is not supported yet.");
@@ -114,27 +107,10 @@ KimlikDAO.prototype.getValidated = function (
       /** @const {string} */
       const ownerAddress = addresses[0];
       /** @const {!Promise<string>} */
-      const chainIdPromise = ethereum.request(
-        /** @type {!eth.Request} */({
+      const chainIdPromise = this.provider
+        .request(/** @type {!eth.Request} */({
           method: "eth_chainId",
-        })
-      );
-
-      /** @const {!Promise<!kimlikdao.ValidationRequest>} */
-      const challengePromise = !skipOwnerValidation
-        ? this.generateChallenge().then((challenge) =>
-          ethereum
-            .request(/** @type {!eth.Request} */({
-              method: "personal_sign",
-              params: [challenge.text, ownerAddress],
-            }))
-            .then((signature) => /** @type {!kimlikdao.ValidationRequest} */({
-              challenge,
-              signature: evm.compactSignature(signature),
-            })))
-        : Promise.resolve(
-          /** @type {!kimlikdao.ValidationRequest} */({ ownerAddress }));
-
+        }));
       /** @type {!Promise<string>} */
       const filePromise = TCKT.handleOf(ownerAddress).then((cidHex) =>
         evm.isZero(cidHex)
@@ -142,26 +118,64 @@ KimlikDAO.prototype.getValidated = function (
           : ipfs.cidBytetanOku(this.ipfsUrl, hexten(cidHex.slice(2)))
       );
 
-      return Promise.all([challengePromise, chainIdPromise, filePromise])
-        .then(([request, chainId, file]) =>
+      return Promise.all([chainIdPromise, filePromise])
+        .then(([chainId, file]) =>
           fromUnlockableNFT(
             /** @const {!eth.ERC721Unlockable} */(JSON.parse(file)),
             sectionNames,
-            ethereum,
+            this.provider,
             ownerAddress
-          ).then((decryptedSections) =>
-            /** @type {!kimlikdao.ValidationRequest} */({
-            ...request,
-            chainId,
-            didContract,
-            decryptedSections,
-          })))
-        .then((request) => fetch(this.validatorUrl, {
-          method: "POST",
-          headers: { "content-type": "application/json;charset=utf-8" },
-          data: JSON.stringify(request),
-        }));
+          ).then((decryptedSections) => (getChallenge
+            ? Promise.all([
+              getChallenge(decryptedSections),
+              new Promise((resolve) => setTimeout(resolve, 200))
+            ]).then(([challenge, _]) => this.provider
+              .request(/** @type {!eth.Request} */({
+                method: "personal_sign",
+                params: [challenge.text, ownerAddress],
+              }))
+              .then((/** @type {string} */ signature) => /** @type {!kimlikdao.ValidationRequest} */({
+                challenge,
+                signature: evm.compactSignature(signature),
+              }))
+            )
+            : Promise.resolve(/** @type {!kimlikdao.ValidationRequest} */({ ownerAddress })))
+            .then((/** @type {!kimlikdao.ValidationRequest} */ request) =>
+              /** @type {!kimlikdao.ValidationRequest} */({
+              ...request,
+              chainId,
+              didContract,
+              decryptedSections,
+            })))
+        );
     });
-};
+}
+
+/**
+ * Given a list of `did.Section` names, prompts the user to decrypt the info
+ * sections and sends the decrypted info sections for validation to the remote
+ * `validator`.
+ *
+ * The response returned from the validator is passed onto the caller verbatim.
+ *
+ * @param {string} didContract
+ * @param {!Array<string>} sectionNames
+ * @param {(function(!did.DecryptedSections):(
+*   !kimlikdao.Challenge|
+*   !Promise<!kimlikdao.Challenge>))=} getChallenge
+ * @return {!Promise<!Response>}
+ */
+KimlikDAO.prototype.getValidated = function (
+  didContract,
+  sectionNames,
+  getChallenge
+) {
+  return this.getValidationRequest(didContract, sectionNames, getChallenge)
+    .then((request) => fetch(this.validatorUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json;charset=utf-8" },
+      data: JSON.stringify(request),
+    }));
+}
 
 export { KimlikDAO };

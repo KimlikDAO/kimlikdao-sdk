@@ -6,16 +6,16 @@
  */
 
 /**
- * @typedef {{
- *   validatorUrl: string,
+ * @constructor
+ * @struct
+ *
+ * @param {{
+ *   validatorUrl: (string|undefined),
  *   ipfsUrl: (string|undefined),
- *   provider: (!eth.Provider|undefined),
- *   generateChallenge: (function():Promise<kimlikdao.Challenge>|undefined),
- * }}
+ *   provider: (!eth.Provider|undefined)
+ * }} params
  */
-kimlikdao.Params;
-
-var KimlikDAO;
+const KimlikDAO = function (params) { };
 
 /**
  * Checks whether the connected address has a TCKT on-chain.
@@ -40,6 +40,20 @@ KimlikDAO.prototype.getUnvalidated;
 
 /**
  * Given a list of `did.Section` names, requests the user to decrypt the
+ * info sections and prepares the request to be sent for validation to
+ * the remote `Validator`.
+ *
+ * @param {string} didContract
+ * @param {!Array<string>} sectionNames
+ * @param {(function(!did.DecryptedSections):(
+*   !kimlikdao.Challenge|
+*   !Promise<!kimlikdao.Challenge>))=} getChallenge
+ * @return {Promise<!kimlikdao.ValidationRequest>}
+ */
+KimlikDAO.prototype.getValidationRequest;
+
+/**
+ * Given a list of `did.Section` names, requests the user to decrypt the
  * info sections and sends the decrypted info sections for validation to
  * the remote `Validator`.
  *
@@ -47,7 +61,9 @@ KimlikDAO.prototype.getUnvalidated;
  *
  * @param {string} didContract
  * @param {!Array<string>} sectionNames
- * @param {boolean=} skipOwnerValidation
+ * @param {(function(!did.DecryptedSections):(
+*   !kimlikdao.Challenge|
+*   !Promise<!kimlikdao.Challenge>))=} getChallenge
  * @return {Promise<*>}
  */
 KimlikDAO.prototype.getValidated;

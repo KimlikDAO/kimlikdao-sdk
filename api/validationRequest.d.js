@@ -5,7 +5,7 @@
 
 /**
  * @typedef {{
-*   nonce: string,
+*   nonce: (number|string),
 *   text: string,
 * }}
 */
