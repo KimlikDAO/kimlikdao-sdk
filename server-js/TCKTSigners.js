@@ -1,4 +1,4 @@
-import { err, ErrorCode } from "/api/error";
+import { err, ErrorCode } from "../api/error";
 import jsonrpc from "/lib/api/jsonrpc";
 import { recoverSectionSigners } from "/lib/did/section";
 import evm from "/lib/ethereum/evm";
@@ -17,6 +17,54 @@ const TCKT_SIGNERS = "0xcCc09aA0d174271259D093C598FCe9Feb2791cCc";
 function TCKTSigners(nodeUrls) {
   /** @const {!Object<string, string>} */
   this.nodeUrls = nodeUrls;
+}
+
+/**
+ * Temporary validation method, before the TCKTSigners contract
+ * is deployed.
+ *
+ * @param {!did.DecryptedSections} decryptedSections
+ * @param {string} ownerAddress
+ * @return {!Promise<!kimlikdao.ValidationReport>}
+ */
+TCKTSigners.prototype.validateSignersTemporary = function (decryptedSections, ownerAddress) {
+  /** @const {!kimlikdao.ValidationReport} */
+  const validationReport = {
+    isValid: true,
+    isAuthenticated: false,
+    errors: [],
+    perSection: {}
+  };
+
+  /** @const {!Set<string>} */
+  const initialSigners = new Set([
+    "0x299A3490c8De309D855221468167aAD6C44c59E0".toLowerCase(),
+    "0x384bF113dcdF3e7084C1AE2Bb97918c3Bf15A6d2".toLowerCase(),
+    "0x77c60E68158De0bC70260DFd1201be9445EfFc07".toLowerCase(),
+    "0x4F1DBED3c377646c89B4F8864E0b41806f2B79fd".toLowerCase(),
+    "0x86f6B34A26705E6a22B8e2EC5ED0cC5aB3f6F828".toLowerCase(),
+  ]);
+
+  for (const key in decryptedSections) {
+    /** @const {!Array<string>} */
+    const signers = recoverSectionSigners(key, decryptedSections[key], ownerAddress);
+    /** @const {boolean} */
+    const isValid = signers.reduce(
+      /**
+       * @param {number} signersCount
+       * @param {string} signer
+       * @return {number}
+       */
+      (signersCount, signer) => signersCount + +initialSigners.has(signer)) >= 3;
+
+    validationReport.perSection[key] = /** @type {!kimlikdao.SectionReport} */({
+      isValid,
+      errors: isValid ? [] : [err(ErrorCode.INSUFFICIENT_SIGNER_COUNT)]
+    });
+    validationReport.isValid &&= isValid;
+  }
+
+  return Promise.resolve(validationReport);
 }
 
 /**

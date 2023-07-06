@@ -5,7 +5,7 @@ import evm from "/lib/ethereum/evm";
  * @const {string}
  * @noinline
  */
-const TCKT_ADDR = "0xcCc0F938A2C94b0fFBa49F257902Be7F56E62cCc";
+const TCKT_ADDR = "0xcCc0a9b023177549fcf26c947edb5bfD9B230cCc";
 
 /**
  * @constructor
@@ -26,11 +26,11 @@ function TCKT(nodeUrls) {
  */
 TCKT.prototype.exposureReported = function (exposureReportID) {
   return jsonrpc.call(this.nodeUrls["0xa86a"], 'eth_call', [
-    /** @type {eth.Transaction} */({
+    /** @type {!eth.Transaction} */({
       to: TCKT_ADDR,
       data: "0x72797221" + exposureReportID
     }), "latest"
-  ]).then((hexValue) => parseInt(hexValue, 16));
+  ]).then((/** @type {string} */ hexValue) => parseInt(hexValue.slice(-10), 16));
 }
 
 /**
@@ -48,7 +48,7 @@ TCKT.prototype.lastRevokeTimestamp = function (address) {
         to: TCKT_ADDR,
         data: "0x6a0d104e" + evm.address(address)
       }), "latest"
-    ]).then((hexValue) => parseInt(hexValue, 16))
+    ]).then((/** @type {string} */ hexValue) => parseInt(hexValue.slice(-10), 16))
   );
 
   return Promise.all(promises)
@@ -64,9 +64,9 @@ TCKT.prototype.lastRevokeTimestamp = function (address) {
 TCKT.prototype.handleOf = function (chainId, address) {
   return /** @type {!Promise<string>} */(jsonrpc.call(this.nodeUrls[chainId],
     'eth_call', [
-    /** @type {eth.Transaction} */({
+    /** @type {!eth.Transaction} */({
       to: TCKT_ADDR,
-      data: "0x8a591c8a" + evm.address(address)
+      data: "0xc50a1514" + evm.address(address)
     }), "latest"
   ]));
 }

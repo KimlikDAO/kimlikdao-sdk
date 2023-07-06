@@ -4,10 +4,10 @@
  * @author KimlikDAO
  */
 
+import { ErrorCode, err } from "../api/error";
+import { reportError } from "../api/validationReport";
 import { TCKT, TCKT_ADDR } from "./TCKT";
 import { TCKTSigners } from "./TCKTSigners";
-import { err, ErrorCode } from "/api/error";
-import { reportError } from "/api/validationReport";
 import evm from "/lib/ethereum/evm";
 
 /**
@@ -15,8 +15,8 @@ import evm from "/lib/ethereum/evm";
  * @struct
  *
  * @param {!Object<string, string>} nodeUrls
- * @param {!Array<string>} acceptedContracts
- * @param {function(kimlikdao.Challenge):Promise<boolean>=} validateChallenge
+ * @param {Array<string>} acceptedContracts
+ * @param {function(!kimlikdao.Challenge):boolean=} validateChallenge
  * @param {boolean=} allowUnauthenticated
  */
 function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthenticated) {
@@ -33,14 +33,14 @@ function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthen
    * Record the user provided challenge validator. If none provided, use the
    * validator for the default challenge generator.
    * 
-   * @const {function(kimlikdao.Challenge):Promise<boolean>}
+   * @const {function(!kimlikdao.Challenge):boolean}
    */
   this.validateChallenge = validateChallenge || ((challenge) => {
     const timestamp = +challenge.nonce;
     /** @const {number} */
     const now = Date.now();
-    return Promise.resolve(timestamp < now + 1000 && timestamp + 6e8 > now &&
-      challenge.text.endsWith("" + new Date(timestamp)));
+    return timestamp < now + 1000 && timestamp + 6e8 > now &&
+      challenge.text.endsWith("" + new Date(timestamp));
   });
   /** @const {boolean} */
   this.allowUnauthenticated = allowUnauthenticated || false;
@@ -60,7 +60,7 @@ Validator.prototype.validateWithAddress = function (ownerAddress, isAuthenticate
       ? this.tckt.exposureReported(
         /** @type {!did.PersonInfo} */(decryptedSections["personInfo"]).exposureReportID)
       : Promise.resolve(0),
-    this.tcktSigners.validateSigners(decryptedSections, ownerAddress),
+    this.tcktSigners.validateSignersTemporary(decryptedSections, ownerAddress),
   ];
 
   return Promise.all(promises)
@@ -112,9 +112,8 @@ Validator.prototype.validate = function (request) {
     const ownerAddress = evm.signerAddress(
       evm.personalDigest(challenge.text), request.signature);
     return this.validateChallenge(challenge)
-      .then((isFresh) => isFresh
-        ? this.validateWithAddress(ownerAddress, true, request.decryptedSections)
-        : reportError(ErrorCode.STALE_CHALLENGE_RESPONSE));
+      ? this.validateWithAddress(ownerAddress, true, request.decryptedSections)
+      : reportError(ErrorCode.STALE_CHALLENGE_RESPONSE);
   } else {
     if (!this.allowUnauthenticated)
       return reportError(ErrorCode.UNAUTHENTICATED_NOT_ALLOWED);
