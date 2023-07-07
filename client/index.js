@@ -14,19 +14,17 @@ import { hexten } from "/lib/util/çevir";
  * @constructor
  * @struct
  *
- * @param {{
-*   validatorUrl: (string|undefined),
-*   ipfsUrl: (string|undefined),
-*   provider: (!eth.Provider|undefined)
-* }} params
+ * @param {string=} validatorUrl
+ * @param {string=} ipfsUrl
+ * @param {!eth.Provider=} provider
 */
-const KimlikDAO = function (params) {
+const KimlikDAO = function (validatorUrl, ipfsUrl, provider) {
   /** @const {string} */
-  this.validatorUrl = params.validatorUrl || "";
+  this.validatorUrl = validatorUrl || "";
+  /** @const {string} */
+  this.ipfsUrl = ipfsUrl || "https://ipfs.kimlikdao.org";
   /** @const {!eth.Provider} */
-  this.provider = params.provider || window.ethereum;
-  /** @const {string} */
-  this.ipfsUrl = params.ipfsUrl || "https://ipfs.kimlikdao.org";
+  this.provider = provider || window.ethereum;
 };
 
 /**
