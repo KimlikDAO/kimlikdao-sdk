@@ -1,13 +1,12 @@
 build/client/index.js: client/index.js client/index.d.js \
     api/*.d.js \
+    lib/crosschain/*.js \
     lib/crypto/sha3.js lib/crypto/secp256k1.js lib/crypto/modular.js \
     lib/crypto/wesolowski.js lib/crypto/primes.js \
-    lib/did/*.d.js lib/did/section.js lib/did/decryptedSections.js \
-    lib/did/verifiableID.js \
+    lib/did/*.js \
     lib/ethereum/*.d.js lib/ethereum/TCKTLite.js \
-    lib/ethereum/evm.js lib/ethereum/unlockable.js \
-    lib/node/ipfs.d.js lib/node/ipfs.js lib/node/error.d.js \
-    lib/node/nvi.d.js \
+    lib/ethereum/evm.js \
+    lib/node/*.d.js lib/node/ipfs.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
 	echo "globalThis['exports'] = {'KimlikDAO':KimlikDAO};" | cat $< - > $@.tmp

@@ -2,7 +2,7 @@ build/server-js/test/TCKT.compiled-test.js: server-js/test/TCKT.compiled-test.js
     server-js/TCKT.js \
     lib/api/jsonrpc.d.js lib/api/jsonrpc.js \
     lib/crypto/sha3.js lib/crypto/secp256k1.js lib/crypto/modular.js \
-    lib/ethereum/transaction.d.js lib/ethereum/evm.js \
+    lib/ethereum/eth.d.js lib/ethereum/transaction.d.js lib/ethereum/evm.js \
     lib/testing/assert.js lib/testing/nodejs.d.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
