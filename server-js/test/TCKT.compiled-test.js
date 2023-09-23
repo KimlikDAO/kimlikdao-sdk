@@ -1,5 +1,5 @@
 import { TCKT } from "../TCKT";
-import { assertEq, assertStats } from "/lib/testing/assert";
+import { assertEq } from "/lib/testing/assert";
 
 const testHandleOf = () => {
   const tckt = new TCKT({
@@ -21,7 +21,5 @@ const testLastRevokeTimestamp = () => {
     .catch(console.log);
 }
 
-Promise.all([
-  testHandleOf(),
-  testLastRevokeTimestamp(),
-]).then(assertStats);
+testHandleOf();
+testLastRevokeTimestamp();
