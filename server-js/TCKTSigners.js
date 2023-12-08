@@ -43,6 +43,7 @@ TCKTSigners.prototype.validateSignersTemporary = function (decryptedSections, ow
     "0x77c60E68158De0bC70260DFd1201be9445EfFc07".toLowerCase(),
     "0x4F1DBED3c377646c89B4F8864E0b41806f2B79fd".toLowerCase(),
     "0x86f6B34A26705E6a22B8e2EC5ED0cC5aB3f6F828".toLowerCase(),
+    "0xc855dB548A6feB1f34AcAE6531c84261008ea55A".toLowerCase(),
   ]);
 
   for (const key in decryptedSections) {
