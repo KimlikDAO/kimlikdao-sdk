@@ -1,4 +1,6 @@
 *.lock
 build
+cache
 node_modules
+out/
 server-rs/target
