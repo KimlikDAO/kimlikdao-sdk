@@ -44,7 +44,7 @@ TCKT.prototype.lastRevokeTimestamp = function (address) {
   /** @const {!Array<Promise<number>>} */
   const promises = Object.values(this.nodeUrls).map((nodeUrl) =>
     jsonrpc.call(nodeUrl, 'eth_call', [
-        /** @type {!eth.Transaction} */({
+      /** @type {!eth.Transaction} */({
         to: TCKT_ADDR,
         data: "0x6a0d104e" + evm.address(address)
       }), "latest"
@@ -59,7 +59,7 @@ TCKT.prototype.lastRevokeTimestamp = function (address) {
  * @param {string} chainId
  * @param {string} address
  * @return {!Promise<string>} the IPFS handle of the address, encoded as a 
- *                           length 66 hex string.
+ *                            length 66 hex string.
  */
 TCKT.prototype.handleOf = function (chainId, address) {
   return /** @type {!Promise<string>} */(jsonrpc.call(this.nodeUrls[chainId],
