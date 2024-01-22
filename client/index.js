@@ -4,6 +4,7 @@
  * @author KimlikDAO
  */
 
+import { ChainId } from "/lib/crosschain/chainId";
 import { Provider } from "/lib/crosschain/provider";
 import { fromUnlockableNFT } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";
@@ -16,7 +17,7 @@ import evm from "/lib/ethereum/evm";
  * The response returned from the validator is passed onto the caller verbatim.
  *
  * @param {!Provider} provider
- * @param {string} chainId
+ * @param {ChainId} chainId
  * @param {string} didContract
  * @param {string} ownerAddress
  * @param {!eth.ERC721Unlockable} tcktNft
