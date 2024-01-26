@@ -11,17 +11,17 @@ build/server-js/index.js: server-js/index.js server-js/validator.js \
     lib/node/*.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
-	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
-                             --jscomp_warning=strictCheckTypes \
-                             --jscomp_error=unusedLocalVariables \
-                             --emit_use_strict \
-                             --module_resolution NODE \
-                             --assume_function_wrapper \
-                             --dependency_mode PRUNE \
-                             --entry_point $< \
-                             --js $^ \
-                             --js_output_file $@
-	yarn uglifyjs $@ -m -o $@
+	bun google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
+                            --jscomp_warning=strictCheckTypes \
+                            --jscomp_error=unusedLocalVariables \
+                            --emit_use_strict \
+                            --module_resolution NODE \
+                            --assume_function_wrapper \
+                            --dependency_mode PRUNE \
+                            --entry_point $< \
+                            --js $^ \
+                            --js_output_file $@
+	bun uglifyjs $@ -m -o $@
 
 .PHONY: server-js
 server-js: build/server-js/index.js

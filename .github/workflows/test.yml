@@ -17,21 +17,19 @@ jobs:
         with:
           submodules: true
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      - uses: oven-sh/setup-bun@v1
 
       - name: Build server-js
         run: |
-          yarn
+          bun i
           make server-js
 
       - name: Test server-js
         run: |
-          yarn
+          bun i
           make server-js/test
 
       - name: Build client
         run: |
-          yarn
+          bun i
           make client

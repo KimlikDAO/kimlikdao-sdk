@@ -10,17 +10,17 @@ build/client/index.js: client/index.js client/index.d.js \
     lib/util/çevir.js
 	mkdir -p $(dir $@)
 	echo "globalThis['exports'] = {'KimlikDAO':KimlikDAO};" | cat $< - > $@.tmp
-	yarn google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
-                             --jscomp_warning=strictCheckTypes \
-                             --jscomp_error=unusedLocalVariables \
-                             --emit_use_strict \
-                             --module_resolution NODE \
-                             --assume_function_wrapper \
-                             --dependency_mode PRUNE \
-                             --entry_point $@.tmp \
-                             --js $@.tmp $(filter-out $<,$^) \
-                             --js_output_file $@
-	yarn uglifyjs $@ -m -o $@
+	bun google-closure-compiler -W VERBOSE -O ADVANCED --charset UTF-8 \
+                            --jscomp_warning=strictCheckTypes \
+                            --jscomp_error=unusedLocalVariables \
+                            --emit_use_strict \
+                            --module_resolution NODE \
+                            --assume_function_wrapper \
+                            --dependency_mode PRUNE \
+                            --entry_point $@.tmp \
+                            --js $@.tmp $(filter-out $<,$^) \
+                            --js_output_file $@
+	bun uglifyjs $@ -m -o $@
 	sed -i.bak 's/globalThis.exports=/export/g' $@
 
 .PHONY: client

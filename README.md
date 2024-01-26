@@ -62,8 +62,8 @@ express()
 ```shell
 git clone --recursive https://github.com/KimlikDAO/kimlikdao-sdk
 cd kimlikdao-sdk
-yarn # Install dependencies
-node examples/simple-example/server
+bun i # Install dependencies
+bun examples/simple-example/server.js
 ```
 
 and navigate to localhost:9090.
