@@ -4,7 +4,7 @@
  * @author KimlikDAO
  */
 
-import { ChainId } from "/lib/crosschain/chainId";
+import { ChainId } from "/lib/crosschain/chains";
 import { Provider } from "/lib/crosschain/provider";
 import { fromUnlockableNFT } from "/lib/did/decryptedSections";
 import evm from "/lib/ethereum/evm";

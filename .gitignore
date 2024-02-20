@@ -1,4 +1,4 @@
-*.lock
+*.lock*
 build
 cache
 node_modules
