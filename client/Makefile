@@ -4,7 +4,7 @@ build/client/index.js: client/index.js client/index.d.js \
     lib/crypto/sha3.js lib/crypto/secp256k1.js lib/crypto/modular.js \
     lib/crypto/wesolowski.js lib/crypto/primes.js \
     lib/did/*.js \
-    lib/ethereum/*.d.js lib/ethereum/TCKTLite.js \
+    lib/ethereum/*.d.js lib/ethereum/KPassLite.js \
     lib/ethereum/evm.js \
     lib/node/*.d.js lib/node/ipfs.js \
     lib/util/çevir.js

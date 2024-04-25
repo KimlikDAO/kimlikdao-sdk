@@ -15,7 +15,7 @@ const kimlikdao = new KimlikDAO({
 });
 
 // In an async function
-const tckt = await kimlikdao.getValidated(kimlikdao.TCKT, [
+const kpass = await kimlikdao.getValidated(kimlikdao.KPass, [
   "personInfo",
   "addressInfo",
   "contactInfo",

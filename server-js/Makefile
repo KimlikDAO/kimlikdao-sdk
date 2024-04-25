@@ -1,7 +1,7 @@
 include server-js/test/Makefile
 
 build/server-js/index.js: server-js/index.js server-js/validator.js \
-    server-js/TCKT.js server-js/TCKTSigners.js \
+    server-js/KPass.js server-js/KPassSigners.js \
     api/*.d.js api/error.js api/validationReport.js \
     lib/api/jsonrpc.d.js lib/api/jsonrpc.js \
     lib/crosschain/*.js \

@@ -1,21 +1,19 @@
 import jsonrpc from "/lib/api/jsonrpc";
+import { ChainId } from "/lib/crosschain/chains";
+import KPassLite from "/lib/ethereum/KPassLite";
 import evm from "/lib/ethereum/evm";
-
-/**
- * @const {string}
- * @noinline
- */
-const TCKT_ADDR = "0xcCc0a9b023177549fcf26c947edb5bfD9B230cCc";
 
 /**
  * @constructor
  *
- * @param {!Object<string, string>} nodeUrls
+ * @param {!Object<ChainId, string>} nodeUrls
  */
-function TCKT(nodeUrls) {
-  /** @const {!Object<string, string>} */
+function KPass(nodeUrls) {
+  /** @const {!Object<ChainId, string>} */
   this.nodeUrls = nodeUrls;
 }
+
+KPass.prototype.ADDRS = KPassLite.KPASS_ADDRS;
 
 /**
  * Note exposure reports are filed only on Avalanche C-chain therefore this
@@ -24,10 +22,10 @@ function TCKT(nodeUrls) {
  * @param {string} exposureReportID of length 64, hex encoded exposureReportID.
  * @return {!Promise<number>} the timestamp of the last exposure report or zero.
  */
-TCKT.prototype.exposureReported = function (exposureReportID) {
-  return jsonrpc.call(this.nodeUrls["0xa86a"], 'eth_call', [
+KPass.prototype.exposureReported = function (exposureReportID) {
+  return jsonrpc.call(this.nodeUrls[ChainId.x144], 'eth_call', [
     /** @type {!eth.Transaction} */({
-      to: TCKT_ADDR,
+      to: KPassLite.getAddress(ChainId.x144),
       data: "0x72797221" + exposureReportID
     }), "latest"
   ]).then((/** @type {string} */ hexValue) => parseInt(hexValue.slice(-10), 16));
@@ -40,12 +38,12 @@ TCKT.prototype.exposureReported = function (exposureReportID) {
  * @param {string} address
  * @return {!Promise<number>} the last revoke timestamp.
  */
-TCKT.prototype.lastRevokeTimestamp = function (address) {
+KPass.prototype.lastRevokeTimestamp = function (address) {
   /** @const {!Array<Promise<number>>} */
-  const promises = Object.values(this.nodeUrls).map((nodeUrl) =>
+  const promises = Object.entries(this.nodeUrls).map(([/** ChainId */ chainId, nodeUrl]) =>
     jsonrpc.call(nodeUrl, 'eth_call', [
       /** @type {!eth.Transaction} */({
-        to: TCKT_ADDR,
+        to: KPassLite.getAddress(chainId),
         data: "0x6a0d104e" + evm.address(address)
       }), "latest"
     ]).then((/** @type {string} */ hexValue) => parseInt(hexValue.slice(-10), 16))
@@ -56,19 +54,19 @@ TCKT.prototype.lastRevokeTimestamp = function (address) {
 }
 
 /**
- * @param {string} chainId
+ * @param {ChainId} chainId
  * @param {string} address
  * @return {!Promise<string>} the IPFS handle of the address, encoded as a 
  *                            length 66 hex string.
  */
-TCKT.prototype.handleOf = function (chainId, address) {
+KPass.prototype.handleOf = function (chainId, address) {
   return /** @type {!Promise<string>} */(jsonrpc.call(this.nodeUrls[chainId],
     'eth_call', [
     /** @type {!eth.Transaction} */({
-      to: TCKT_ADDR,
+      to: KPassLite.getAddress(chainId),
       data: "0xc50a1514" + evm.address(address)
     }), "latest"
   ]));
 }
 
-export { TCKT, TCKT_ADDR };
+export { KPass };

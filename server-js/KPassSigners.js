@@ -7,27 +7,27 @@ import evm from "/lib/ethereum/evm";
  * @const {string}
  * @noinline
  */
-const TCKT_SIGNERS = "0xcCc09aA0d174271259D093C598FCe9Feb2791cCc";
+const KPASS_SIGNERS = "0xcCc09aA0d174271259D093C598FCe9Feb2791cCc";
 
 /**
  * @constructor
  *
  * @param {!Object<string, string>} nodeUrls
  */
-function TCKTSigners(nodeUrls) {
+function KPassSigners(nodeUrls) {
   /** @const {!Object<string, string>} */
   this.nodeUrls = nodeUrls;
 }
 
 /**
- * Temporary validation method, before the TCKTSigners contract
+ * Temporary validation method, before the KPassSigners contract
  * is deployed.
  *
  * @param {!did.DecryptedSections} decryptedSections
  * @param {string} ownerAddress
  * @return {!Promise<!kimlikdao.ValidationReport>}
  */
-TCKTSigners.prototype.validateSignersTemporary = function (decryptedSections, ownerAddress) {
+KPassSigners.prototype.validateSignersTemporary = function (decryptedSections, ownerAddress) {
   /** @const {!kimlikdao.ValidationReport} */
   const validationReport = {
     isValid: true,
@@ -74,7 +74,7 @@ TCKTSigners.prototype.validateSignersTemporary = function (decryptedSections, ow
  * @param {string} ownerAddress
  * @return {!Promise<!kimlikdao.ValidationReport>}
  */
-TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddress) {
+KPassSigners.prototype.validateSigners = function (decryptedSections, ownerAddress) {
   /** @const {!Set<string>} */
   const allSigners = new Set();
   /** @const {!Object<string, !Array<string>>} */
@@ -90,15 +90,15 @@ TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddres
   /** @const {!Array<!Array<*>>} */
   const paramsList = allSignersList.map((signer) => [/** @type {!eth.Transaction} */({
     data: "0x2796d3f1" + evm.address(signer),
-    to: TCKT_SIGNERS
+    to: KPASS_SIGNERS
   }),
     "latest"]);
   paramsList.push([/** @type {!eth.Transaction} */({
     data: "0x46fc4be1", // signerCountNeeded()
-    to: TCKT_SIGNERS
+    to: KPASS_SIGNERS
   }), "latest"], [/** @type {!eth.Transaction} */({
     data: "0xc8676ec4", // signerStakeNeeded()
-    to: TCKT_SIGNERS
+    to: KPASS_SIGNERS
   }), "latest"]);
 
   return jsonrpc.callMulti(this.nodeUrls['0xa86a'],
@@ -169,4 +169,4 @@ TCKTSigners.prototype.validateSigners = function (decryptedSections, ownerAddres
   })
 }
 
-export { TCKTSigners };
+export { KPassSigners };

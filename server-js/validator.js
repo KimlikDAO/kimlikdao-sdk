@@ -6,15 +6,16 @@
 
 import { ErrorCode, err } from "../api/error";
 import { reportError } from "../api/validationReport";
-import { TCKT, TCKT_ADDR } from "./TCKT";
-import { TCKTSigners } from "./TCKTSigners";
+import { KPass } from "./KPass";
+import { KPassSigners } from "./KPassSigners";
+import { ChainId } from "/lib/crosschain/chains";
 import evm from "/lib/ethereum/evm";
 
 /**
  * @constructor
  * @struct
  *
- * @param {!Object<string, string>} nodeUrls
+ * @param {!Object<ChainId, string>} nodeUrls
  * @param {Array<string>} acceptedContracts
  * @param {function(!kimlikdao.Challenge):boolean=} validateChallenge
  * @param {boolean=} allowUnauthenticated
@@ -22,12 +23,12 @@ import evm from "/lib/ethereum/evm";
 function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthenticated) {
   /** @const {!Object<string, string>} */
   this.nodeUrls = nodeUrls;
+  /** @const {!KPass} */
+  this.kpass = new KPass(nodeUrls);
+  /** @const {!KPassSigners} */
+  this.kpassSigners = new KPassSigners(nodeUrls);
   /** @const {!Set<string>} */
-  this.acceptedContracts = new Set(acceptedContracts || [TCKT_ADDR]);
-  /** @const {!TCKT} */
-  this.tckt = new TCKT(nodeUrls);
-  /** @const {!TCKTSigners} */
-  this.tcktSigners = new TCKTSigners(nodeUrls);
+  this.acceptedContracts = new Set(acceptedContracts || this.kpass.ADDRS);
 
   /**
    * Record the user provided challenge validator. If none provided, use the
@@ -55,12 +56,12 @@ function Validator(nodeUrls, acceptedContracts, validateChallenge, allowUnauthen
 Validator.prototype.validateWithAddress = function (ownerAddress, isAuthenticated, decryptedSections) {
   /** @const {!Array<!Promise<*>>} */
   const promises = [
-    this.tckt.lastRevokeTimestamp(ownerAddress),
+    this.kpass.lastRevokeTimestamp(ownerAddress),
     decryptedSections["personInfo"]
-      ? this.tckt.exposureReported(
+      ? this.kpass.exposureReported(
         /** @type {!did.PersonInfo} */(decryptedSections["personInfo"]).exposureReportID)
       : Promise.resolve(0),
-    this.tcktSigners.validateSignersTemporary(decryptedSections, ownerAddress),
+    this.kpassSigners.validateSignersTemporary(decryptedSections, ownerAddress),
   ];
 
   return Promise.all(promises)
