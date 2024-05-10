@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  check:
+  check_server_sdk:
     strategy:
       fail-fast: true
 
@@ -16,20 +16,43 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
       - uses: oven-sh/setup-bun@v1
-
       - name: Build server-js
         run: |
           bun i
           make server-js
-
       - name: Test server-js
         run: |
-          bun i
           make server-js/test
 
+  check_client_sdk:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: oven-sh/setup-bun@v1
       - name: Build client
         run: |
           bun i
           make client
+
+  check_mina_sdk:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - name:
+        run: |
+          cd mina
+          npm i
+          npm run test
+          cd ..

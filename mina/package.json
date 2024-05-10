@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "dependencies": {
+    "@types/jest": "^29.5.12",
+    "o1js": "^1.1.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.5"
+  },
+  "type": "module"
+}
