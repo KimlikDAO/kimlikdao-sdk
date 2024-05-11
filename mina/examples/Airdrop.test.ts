@@ -6,7 +6,7 @@ import {
   PrivateKey,
   Signature
 } from "o1js";
-import { HumanIDWitness, Signatures } from "../src/humanIDv1";
+import { HumanIDWitness, Signatures } from "../humanIDv1";
 import { Airdrop } from "./Airdrop";
 
 describe('Example Airdrop zkApp', () => {
