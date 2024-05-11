@@ -9,4 +9,3 @@ const authenticate = (treeRoot: State<Field>, humanIDv1: Field, witness: HumanID
 }
 
 export { HumanIDWitness, authenticate };
-

@@ -5,8 +5,8 @@ import {
   Mina,
   PrivateKey
 } from "o1js";
-import { Airdrop } from "./Airdrop";
 import { HumanIDWitness } from "../src/humanIDv1";
+import { Airdrop } from "./Airdrop";
 
 describe('Example Airdrop zkApp', () => {
   const deployerKey = PrivateKey.random();
@@ -45,9 +45,40 @@ describe('Example Airdrop zkApp', () => {
     await deploy();
 
     await Mina.transaction(sender, () => {
-      let zkApp = new Airdrop(appAddr);
-      return zkApp.claimReward(Field(100), new HumanIDWitness(tree.getWitness(100n)));
+      return app.claimReward(Field(100), new HumanIDWitness(tree.getWitness(100n)));
     }).then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
+  });
+
+  it('should let 2 people claimReward()', async () => {
+    await deploy();
+
+    await Mina.transaction(sender, () => {
+      return app.claimReward(Field(100), new HumanIDWitness(tree.getWitness(100n)));
+    }).then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send());
+
+    tree.setLeaf(100n, Field(1));
+
+    await Mina.transaction(sender, () => {
+      return app.claimReward(Field(101), new HumanIDWitness(tree.getWitness(101n)));
+    }).then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send());
+  });
+
+  it('should not let double claimReward()', async () => {
+    await deploy();
+
+    await Mina.transaction(sender, () => {
+      return app.claimReward(Field(100), new HumanIDWitness(tree.getWitness(100n)));
+    }).then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send());
+
+    tree.setLeaf(100n, Field(1));
+
+    await expect(() => Mina.transaction(sender, () => {
+      return app.claimReward(Field(100), new HumanIDWitness(tree.getWitness(100n)));
+    }).then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow();
   })
 });
