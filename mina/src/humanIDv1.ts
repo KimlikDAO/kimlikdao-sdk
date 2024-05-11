@@ -1,4 +1,4 @@
-import { State, Field, MerkleWitness } from "o1js";
+import { Field, MerkleWitness, State } from "o1js";
 
 class HumanIDWitness extends MerkleWitness(32) { }
 
@@ -8,4 +8,5 @@ const authenticate = (treeRoot: State<Field>, humanIDv1: Field, witness: HumanID
   treeRoot.set(witness.calculateRoot(Field(1)));
 }
 
-export { authenticate, HumanIDWitness };
+export { HumanIDWitness, authenticate };
+
