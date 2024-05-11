@@ -24,6 +24,6 @@
     "useDefineForClassFields": false,
   },
   "include": [
-    "./contracts"
+    "./examples"
   ],
 }
