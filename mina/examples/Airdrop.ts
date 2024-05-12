@@ -5,7 +5,7 @@ import {
   method,
   state
 } from "o1js";
-import { EmptyRoot, HumanIDWitness, Signatures, authenticate, requireUnique } from "../humanIDv1";
+import { EmptyRoot, HumanIDWitness, Signatures, acceptHumanIDv1 } from "../humanIDv1";
 
 /**
  * Example airdrop zkApp, which gives 10 MINA rewards to the first 1000
@@ -24,8 +24,7 @@ class Airdrop extends SmartContract {
     sigs: Signatures,
     witness: HumanIDWitness,
   ) {
-    authenticate(humanIDv1, sigs, witness.calculateIndex());
-    requireUnique(this.treeRoot, witness);
+    acceptHumanIDv1(humanIDv1, sigs, this.treeRoot, witness);
   }
 }
 
