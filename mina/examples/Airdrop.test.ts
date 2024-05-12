@@ -58,22 +58,37 @@ describe('Example Airdrop zkApp', () => {
   it('should let 2 people claimReward()', async () => {
     await deploy();
 
+    const id1 = 123123123123123n;
+    const truncatedId1 = id1 % 65536n;
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)))
+      () => app.claimReward(Field(id1), sigs, new HumanIDWitness(tree.getWitness(truncatedId1)))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
 
-    tree.setLeaf(100n, Field(1));
+    tree.setLeaf(truncatedId1, Field(1));
 
+    const id2 = 123123123123124n;
+    const truncatedId2 = id2 % 65536n;
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(101), sigs, new HumanIDWitness(tree.getWitness(101n)))
+      () => app.claimReward(Field(id2), sigs, new HumanIDWitness(tree.getWitness(truncatedId2)))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
   });
+
+  it('should reject inconsistent witness', async () => {
+    await deploy();
+
+    await expect(() => Mina.transaction(
+      sender,
+      () => app.claimReward(Field(123123123123123n), sigs, new HumanIDWitness(tree.getWitness(100n)))
+    )
+      .then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow(/does not match the witness/);
+  })
 
   it('should not let double claimReward()', async () => {
     await deploy();
