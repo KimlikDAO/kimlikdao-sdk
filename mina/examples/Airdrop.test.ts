@@ -28,7 +28,7 @@ describe('Example Airdrop zkApp', () => {
 
   beforeEach(() => Mina.LocalBlockchain({ proofsEnabled: true })
     .then((local) => {
-      tree = new MerkleTree(16);
+      tree = new MerkleTree(17);
       Mina.setActiveInstance(local);
       app = new Airdrop(appAddr);
       local.addAccount(deployer, "1000000000");
