@@ -70,7 +70,7 @@ describe('Example Airdrop zkApp', () => {
     await fundZkApp();
 
     const id1 = 123123123123123123123123123123n;
-    const truncatedId1 = id1 % (1n << 32n);
+    const truncatedId1 = id1 & 0xFFFFFFFFn;
     await Mina.transaction(
       sender,
       () => app.claimReward(Field(id1), sigs, new HumanIDWitness(tree.getWitness(truncatedId1)))
@@ -81,7 +81,7 @@ describe('Example Airdrop zkApp', () => {
     tree.setLeaf(truncatedId1, Field(1));
 
     const id2 = 123123123123123123123123123124n;
-    const truncatedId2 = id2 % (1n << 32n);
+    const truncatedId2 = id2 & 0xFFFFFFFFn;
     await Mina.transaction(
       sender,
       () => app.claimReward(Field(id2), sigs, new HumanIDWitness(tree.getWitness(truncatedId2)))

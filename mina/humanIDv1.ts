@@ -24,8 +24,10 @@ const authenticate = (humanIDv1: Field, sigs: Signatures) => {
 
 const EmptyRoot = Field(0x21afce36daa1a2d67391072035f4555a85aea7197e5830b128f121aa382770cdn);
 
+const Inverse2Exp32 = Field(0x3fffffffc00000000000000000000000224698fbe706601f8fe037d166d2cf14n);
+
 const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) => {
-  humanIDv1.sub(truncatedHumanIDv1).div(1n << 32n).assertLessThan(
+  humanIDv1.sub(truncatedHumanIDv1).mul(Inverse2Exp32).assertLessThan(
     (1n << 222n) + 0x224698fc094cf91b992d30edn,
     "HumanID does not match the witness"
   );
