@@ -4,8 +4,6 @@ import {
   State,
   method,
   state,
-  AccountUpdate,
-  UInt64,
 } from "o1js";
 import {
   EmptyRoot,
@@ -34,7 +32,7 @@ class Airdrop extends SmartContract {
     witness: HumanIDWitness,
   ) {
     acceptHumanIDv1(humanIDv1, sigs, this.treeRoot, witness);
-    this.send({ to: this.sender.getUnconstrained(), amount: 10 * MINA });
+    this.send({ to: this.sender.getAndRequireSignature(), amount: 10 * MINA });
   }
 }
 
