@@ -6,7 +6,7 @@ class Signatures extends Struct({
   sig3: Signature
 }) { }
 
-class HumanIDWitness extends MerkleWitness(17) { }
+class HumanIDWitness extends MerkleWitness(33) { }
 
 const addToMerkleTree = (treeRoot: State<Field>, witness: HumanIDWitness) => {
   const currentTreeRoot = treeRoot.getAndRequireEquals();
@@ -22,11 +22,11 @@ const authenticate = (humanIDv1: Field, sigs: Signatures) => {
   return true;
 }
 
-const EmptyRoot = Field(0x24807cf0bfd8d61f0f431456489ca762fb4f967c7c58665e80eadd9878b3af19n);
+const EmptyRoot = Field(0x21afce36daa1a2d67391072035f4555a85aea7197e5830b128f121aa382770cdn);
 
 const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) => {
-  humanIDv1.sub(truncatedHumanIDv1).div(65536).assertLessThan(
-    (1n << 238n) + 0x224698fc094cf91b992d30ed0000n,
+  humanIDv1.sub(truncatedHumanIDv1).div(1n << 32n).assertLessThan(
+    (1n << 222n) + 0x224698fc094cf91b992d30edn,
     "HumanID does not match the witness"
   );
 }

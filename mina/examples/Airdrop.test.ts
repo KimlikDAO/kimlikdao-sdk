@@ -29,7 +29,7 @@ describe('Example Airdrop zkApp', () => {
 
   beforeEach(() => Mina.LocalBlockchain({ proofsEnabled: true })
     .then((local) => {
-      tree = new MerkleTree(17);
+      tree = new MerkleTree(33);
       Mina.setActiveInstance(local);
       app = new Airdrop(appAddr);
       local.addAccount(deployer, "100000000000");
@@ -39,12 +39,11 @@ describe('Example Airdrop zkApp', () => {
   const fundZkApp = () => Mina.transaction(sender, async () => {
     let senderUpdate = AccountUpdate.create(sender);
     senderUpdate.requireSignature();
-    senderUpdate.send({ to: appAddr, amount: UInt64.from(100 * 1e9) });
+    senderUpdate.send({ to: appAddr, amount: 100 * 1e9 });
   }).then((txn) => txn.prove())
     .then((txn) => txn.sign([senderKey]).send());
 
-
-  const deploy = () => Mina.transaction(deployer, async () => {
+  const deploy = () => Mina.transaction(deployer, () => {
     AccountUpdate.fundNewAccount(deployer);
     return app.deploy()
   }).then((txn) => txn.prove())
@@ -70,8 +69,8 @@ describe('Example Airdrop zkApp', () => {
     await deploy();
     await fundZkApp();
 
-    const id1 = 123123123123123n;
-    const truncatedId1 = id1 % 65536n;
+    const id1 = 123123123123123123123123123123n;
+    const truncatedId1 = id1 % (1n << 32n);
     await Mina.transaction(
       sender,
       () => app.claimReward(Field(id1), sigs, new HumanIDWitness(tree.getWitness(truncatedId1)))
@@ -81,8 +80,8 @@ describe('Example Airdrop zkApp', () => {
 
     tree.setLeaf(truncatedId1, Field(1));
 
-    const id2 = 123123123123124n;
-    const truncatedId2 = id2 % 65536n;
+    const id2 = 123123123123123123123123123124n;
+    const truncatedId2 = id2 % (1n << 32n);
     await Mina.transaction(
       sender,
       () => app.claimReward(Field(id2), sigs, new HumanIDWitness(tree.getWitness(truncatedId2)))
@@ -136,7 +135,7 @@ describe('Example Airdrop zkApp', () => {
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
-    
+
     let secondBalance = Mina.getBalance(sender);
 
     expect(secondBalance.sub(firstBalance)).toEqual(UInt64.from(10 * 1e9));

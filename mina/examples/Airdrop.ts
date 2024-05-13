@@ -12,12 +12,12 @@ import {
   acceptHumanIDv1,
 } from "../humanIDv1";
 
+const MINA = 1e9;
+
 /**
  * Example airdrop zkApp, which gives 10 MINA rewards to the first 1000
  * unique humans.
  */
-
-const MINA = 1e9;
 class Airdrop extends SmartContract {
   @state(Field) treeRoot = State<Field>();
 
@@ -32,7 +32,7 @@ class Airdrop extends SmartContract {
     witness: HumanIDWitness,
   ) {
     acceptHumanIDv1(humanIDv1, sigs, this.treeRoot, witness);
-    this.send({ to: this.sender.getAndRequireSignature(), amount: 10 * MINA });
+    this.send({ to: this.sender.getUnconstrained(), amount: 10 * MINA });
   }
 }
 
