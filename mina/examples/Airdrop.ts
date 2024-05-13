@@ -31,7 +31,7 @@ class Airdrop extends SmartContract {
     sigs: Signatures,
     witness: HumanIDWitness,
   ) {
-    acceptHumanIDv1(humanIDv1, sigs, this.treeRoot, witness, this.sender.getUnconstrained());
+    acceptHumanIDv1(humanIDv1, sigs, this.treeRoot, witness, this.sender.getAndRequireSignature());
     this.send({ to: this.sender.getUnconstrained(), amount: 10 * MINA });
   }
 }
