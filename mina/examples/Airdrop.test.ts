@@ -4,7 +4,8 @@ import {
   MerkleTree,
   Mina,
   PrivateKey,
-  Signature
+  Signature,
+  UInt64
 } from "o1js";
 import { HumanIDWitness, Signatures } from "../humanIDv1";
 import { Airdrop } from "./Airdrop";
@@ -31,9 +32,17 @@ describe('Example Airdrop zkApp', () => {
       tree = new MerkleTree(17);
       Mina.setActiveInstance(local);
       app = new Airdrop(appAddr);
-      local.addAccount(deployer, "1000000000");
-      local.addAccount(sender, "1000000000");
+      local.addAccount(deployer, "100000000000");
+      local.addAccount(sender, "100000000000");
     }));
+
+  const fundZkApp = () => Mina.transaction(sender, async () => {
+    let senderUpdate = AccountUpdate.create(sender);
+    senderUpdate.requireSignature();
+    senderUpdate.send({ to: appAddr, amount: UInt64.from(100 * 1e9) });
+  }).then((txn) => txn.prove())
+    .then((txn) => txn.sign([senderKey]).send());
+
 
   const deploy = () => Mina.transaction(deployer, async () => {
     AccountUpdate.fundNewAccount(deployer);
@@ -41,13 +50,15 @@ describe('Example Airdrop zkApp', () => {
   }).then((txn) => txn.prove())
     .then((txn) => txn.sign([deployerKey, appKey]).send())
 
-  it('should deploy the app', async () => {
+  it('should deploy the app and fund it', async () => {
     await deploy();
+    await fundZkApp();
     console.log('Deployed HumanIDs contract at', app.address);
   });
 
   it('should let people claimReward()', async () => {
     await deploy();
+    await fundZkApp()
 
     await Mina.transaction(sender, () => {
       return app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)));
@@ -57,6 +68,7 @@ describe('Example Airdrop zkApp', () => {
 
   it('should let 2 people claimReward()', async () => {
     await deploy();
+    await fundZkApp();
 
     const id1 = 123123123123123n;
     const truncatedId1 = id1 % 65536n;
@@ -81,6 +93,7 @@ describe('Example Airdrop zkApp', () => {
 
   it('should reject inconsistent witness', async () => {
     await deploy();
+    await fundZkApp();
 
     await expect(() => Mina.transaction(
       sender,
@@ -92,6 +105,7 @@ describe('Example Airdrop zkApp', () => {
 
   it('should not let double claimReward()', async () => {
     await deploy();
+    await fundZkApp();
 
     await Mina.transaction(
       sender,
@@ -108,5 +122,23 @@ describe('Example Airdrop zkApp', () => {
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow(/already exists/);
+  })
+
+  it('should send the reciepient 10 MINA', async () => {
+    await deploy();
+    await fundZkApp();
+
+    let firstBalance = Mina.getBalance(sender);
+
+    await Mina.transaction(
+      sender,
+      () => app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)))
+    )
+      .then((txn) => txn.prove())
+      .then((txn) => txn.sign([senderKey]).send());
+    
+    let secondBalance = Mina.getBalance(sender);
+
+    expect(secondBalance.sub(firstBalance)).toEqual(UInt64.from(10 * 1e9));
   })
 });
