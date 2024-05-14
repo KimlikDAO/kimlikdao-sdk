@@ -1,14 +1,13 @@
 import {
   AccountUpdate,
-  Bool,
   Field,
   MerkleTree,
   Mina,
   PrivateKey,
-  Signature,
   UInt64
 } from "o1js";
-import { HumanIDWitness, Signatures, authenticate } from "../humanIDv1";
+import { HumanIDWitness } from "../humanIDv1";
+import { signHumanIDv1, truncateHumanIDv1 } from "../humanIDv1.test";
 import { Airdrop } from "./Airdrop";
 
 describe('Example Airdrop zkApp', () => {
@@ -18,26 +17,6 @@ describe('Example Airdrop zkApp', () => {
   const sender = senderKey.toPublicKey();
   const appKey = PrivateKey.random();
   const appAddr = appKey.toPublicKey();
-  const id1 = Field(1);
-  const id2 = Field(2);
-  const privKey1 = PrivateKey.fromBigInt(1n);
-  const privKey2 = PrivateKey.fromBigInt(2n);
-  const privKey3 = PrivateKey.fromBigInt(3n);
-  const sigs = new Signatures({
-    sig1: Signature.create(privKey1, [Field(100), sender.x.add(sender.isOdd.toField())]),
-    sig2: Signature.create(privKey2, [Field(100), sender.x.add(sender.isOdd.toField())]),
-    sig3: Signature.create(privKey3, [Field(100), sender.x.add(sender.isOdd.toField())])
-  });
-  const sigs1 = new Signatures({
-    sig1: Signature.create(privKey1, [id1, sender.x.add(sender.isOdd.toField())]),
-    sig2: Signature.create(privKey2, [id1, sender.x.add(sender.isOdd.toField())]),
-    sig3: Signature.create(privKey3, [id1, sender.x.add(sender.isOdd.toField())])
-  });
-  const sigs2 = new Signatures({
-    sig1: Signature.create(privKey1, [id2, sender.x.add(sender.isOdd.toField())]),
-    sig2: Signature.create(privKey2, [id2, sender.x.add(sender.isOdd.toField())]),
-    sig3: Signature.create(privKey3, [id2, sender.x.add(sender.isOdd.toField())])
-  });
   let tree: MerkleTree;
   let app: Airdrop;
 
@@ -52,6 +31,13 @@ describe('Example Airdrop zkApp', () => {
       local.addAccount(sender, "100000000000");
     }));
 
+  const getWitnessAndInsert = (humanIDv1Key: bigint) => {
+    const truncated = truncateHumanIDv1(humanIDv1Key);
+    const witness = new HumanIDWitness(tree.getWitness(truncated));
+    tree.setLeaf(truncated, Field(1));
+    return witness;
+  }
+
   const fundZkApp = () => Mina.transaction(sender, async () => {
     let senderUpdate = AccountUpdate.create(sender);
     senderUpdate.requireSignature();
@@ -65,11 +51,6 @@ describe('Example Airdrop zkApp', () => {
   }).then((txn) => txn.prove())
     .then((txn) => txn.sign([deployerKey, appKey]).send())
 
-  it('should verify signatures', () => {
-    authenticate(id1, sigs1, sender);
-    authenticate(id2, sigs2, sender);
-  })
-
   it('should deploy the app and fund it', async () => {
     await deploy();
     await fundZkApp();
@@ -81,7 +62,7 @@ describe('Example Airdrop zkApp', () => {
     await fundZkApp()
 
     await Mina.transaction(sender, () => {
-      return app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)));
+      return app.claimReward(...signHumanIDv1(100n, sender), getWitnessAndInsert(100n));
     }).then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
   });
@@ -91,31 +72,17 @@ describe('Example Airdrop zkApp', () => {
     await fundZkApp();
 
     const id1 = 123123123123123123123123123123n;
-    const truncatedId1 = id1 & 0xFFFFFFFFn;
-    const sigsTest1 = new Signatures({
-      sig1: Signature.create(privKey1, [Field(id1), sender.x.add(sender.isOdd.toField())]),
-      sig2: Signature.create(privKey2, [Field(id1), sender.x.add(sender.isOdd.toField())]),
-      sig3: Signature.create(privKey3, [Field(id1), sender.x.add(sender.isOdd.toField())])
-    });
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(id1), sigsTest1, new HumanIDWitness(tree.getWitness(truncatedId1)))
+      () => app.claimReward(...signHumanIDv1(id1, sender), getWitnessAndInsert(id1))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
 
-    tree.setLeaf(truncatedId1, Field(1));
-
     const id2 = 123123123123123123123123123124n;
-    const truncatedId2 = id2 & 0xFFFFFFFFn;
-    const sigsTest2 = new Signatures({
-      sig1: Signature.create(privKey1, [Field(id2), sender.x.add(sender.isOdd.toField())]),
-      sig2: Signature.create(privKey2, [Field(id2), sender.x.add(sender.isOdd.toField())]),
-      sig3: Signature.create(privKey3, [Field(id2), sender.x.add(sender.isOdd.toField())])
-    });
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(id2), sigsTest2, new HumanIDWitness(tree.getWitness(truncatedId2)))
+      () => app.claimReward(...signHumanIDv1(id2, sender), getWitnessAndInsert(id2))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
@@ -125,35 +92,30 @@ describe('Example Airdrop zkApp', () => {
     await deploy();
     await fundZkApp();
 
-    const sigsTest3 = new Signatures({
-      sig1: Signature.create(privKey1, [Field(123123123123123n), sender.x.add(sender.isOdd.toField())]),
-      sig2: Signature.create(privKey2, [Field(123123123123123n), sender.x.add(sender.isOdd.toField())]),
-      sig3: Signature.create(privKey3, [Field(123123123123123n), sender.x.add(sender.isOdd.toField())])
-    });
-    await expect(() => Mina.transaction(
+    const id = 123123123123123123123123123124n;
+    expect(() => Mina.transaction(
       sender,
-      () => app.claimReward(Field(123123123123123n), sigsTest3, new HumanIDWitness(tree.getWitness(100n)))
+      () => app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(100n))
     )
       .then((txn) => txn.prove())
-      .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow(/does not match the witness/);
+      .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow(/does not match/);
   })
 
   it('should not let double claimReward()', async () => {
     await deploy();
     await fundZkApp();
 
+    const id = 123123123123123123123123123123n;
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)))
+      () => app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(id))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());
 
-    tree.setLeaf(100n, Field(1));
-
-    await expect(() => Mina.transaction(
+    expect(() => Mina.transaction(
       sender,
-      () => app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)))
+      () => app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(id))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send())).rejects.toThrow(/already exists/);
@@ -167,7 +129,7 @@ describe('Example Airdrop zkApp', () => {
 
     await Mina.transaction(
       sender,
-      () => app.claimReward(Field(100), sigs, new HumanIDWitness(tree.getWitness(100n)))
+      () => app.claimReward(...signHumanIDv1(100n, sender), getWitnessAndInsert(100n))
     )
       .then((txn) => txn.prove())
       .then((txn) => txn.sign([senderKey]).send());

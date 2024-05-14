@@ -24,6 +24,7 @@
     "useDefineForClassFields": false,
   },
   "include": [
-    "./examples"
+    "./examples",
+    "./"
   ],
 }

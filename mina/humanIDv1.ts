@@ -1,6 +1,7 @@
 import {
   Field,
   MerkleWitness,
+  Poseidon,
   PrivateKey,
   PublicKey,
   Signature,
@@ -9,19 +10,18 @@ import {
 } from "o1js";
 
 class Signatures extends Struct({
+  sig0: Signature,
   sig1: Signature,
   sig2: Signature,
-  sig3: Signature,
-}) {}
+}) { }
 
-const node1PrivKey = PrivateKey.fromBigInt(1n);
-const node1PublicKey = node1PrivKey.toPublicKey();
-const node2PrivKey = PrivateKey.fromBigInt(2n);
-const node2PublicKey = node2PrivKey.toPublicKey();
-const node3PrivKey = PrivateKey.fromBigInt(3n);
-const node3PublicKey = node3PrivKey.toPublicKey();
+const Nodes = [
+  PrivateKey.fromBigInt(1n).toPublicKey(),
+  PrivateKey.fromBigInt(2n).toPublicKey(),
+  PrivateKey.fromBigInt(3n).toPublicKey(),
+];
 
-class HumanIDWitness extends MerkleWitness(33) {}
+class HumanIDWitness extends MerkleWitness(33) { }
 
 const addToMerkleTree = (treeRoot: State<Field>, witness: HumanIDWitness) => {
   const currentTreeRoot = treeRoot.getAndRequireEquals();
@@ -33,13 +33,15 @@ const addToMerkleTree = (treeRoot: State<Field>, witness: HumanIDWitness) => {
 };
 
 const authenticate = (
+  claimant: PublicKey,
   humanIDv1: Field,
+  commitmentR: Field,
   sigs: Signatures,
-  claimant: PublicKey
 ) => {
-    sigs.sig1.verify(node1PublicKey, [humanIDv1, claimant.x.add(claimant.isOdd.toField())]).assertTrue();
-    sigs.sig2.verify(node2PublicKey, [humanIDv1, claimant.x.add(claimant.isOdd.toField())]).assertTrue();
-    sigs.sig3.verify(node3PublicKey, [humanIDv1, claimant.x.add(claimant.isOdd.toField())]).assertTrue();
+  const commitment = Poseidon.hash([commitmentR, claimant.x.add(claimant.isOdd.toField())]);
+  sigs.sig0.verify(Nodes[0], [humanIDv1, commitment]).assertTrue();
+  sigs.sig1.verify(Nodes[1], [humanIDv1, commitment]).assertTrue();
+  sigs.sig2.verify(Nodes[2], [humanIDv1, commitment]).assertTrue();
 };
 
 const EmptyRoot =
@@ -48,24 +50,23 @@ const EmptyRoot =
 const Inverse2Exp32 =
   Field(0x3fffffffc00000000000000000000000224698fbe706601f8fe037d166d2cf14n);
 
-const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) => {
-  humanIDv1
-    .sub(truncatedHumanIDv1)
-    .mul(Inverse2Exp32)
-    .assertLessThan(
-      (1n << 222n) + 0x224698fc094cf91b992d30edn,
-      "HumanID does not match the witness"
-    );
-};
+const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) => humanIDv1
+  .sub(truncatedHumanIDv1)
+  .mul(Inverse2Exp32)
+  .assertLessThan(
+    (1n << 222n) + 0x224698fc094cf91b992d30edn,
+    "HumanID does not match the witness"
+  );
 
 const acceptHumanIDv1 = (
+  claimant: PublicKey,
   humanIDv1: Field,
+  commitmentR: Field,
   sigs: Signatures,
   treeRoot: State<Field>,
   witness: HumanIDWitness,
-  claimant: PublicKey
 ) => {
-  authenticate(humanIDv1, sigs, claimant);
+  authenticate(claimant, humanIDv1, commitmentR, sigs);
   requireConsistent(humanIDv1, witness.calculateIndex());
   addToMerkleTree(treeRoot, witness);
 };
@@ -73,9 +74,10 @@ const acceptHumanIDv1 = (
 export {
   EmptyRoot,
   HumanIDWitness,
+  Nodes,
   Signatures,
   acceptHumanIDv1,
   addToMerkleTree,
   authenticate,
-  requireConsistent,
+  requireConsistent
 };
