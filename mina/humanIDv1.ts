@@ -15,7 +15,7 @@ class Signatures extends Struct({
   sig2: Signature,
 }) { }
 
-const Nodes = [
+const KimlikDAONodes = [
   PrivateKey.fromBigInt(1n).toPublicKey(),
   PrivateKey.fromBigInt(2n).toPublicKey(),
   PrivateKey.fromBigInt(3n).toPublicKey(),
@@ -39,9 +39,9 @@ const authenticate = (
   sigs: Signatures,
 ) => {
   const commitment = Poseidon.hash([commitmentR, claimant.x.add(claimant.isOdd.toField())]);
-  sigs.sig0.verify(Nodes[0], [humanIDv1, commitment]).assertTrue();
-  sigs.sig1.verify(Nodes[1], [humanIDv1, commitment]).assertTrue();
-  sigs.sig2.verify(Nodes[2], [humanIDv1, commitment]).assertTrue();
+  sigs.sig0.verify(KimlikDAONodes[0], [humanIDv1, commitment]).assertTrue();
+  sigs.sig1.verify(KimlikDAONodes[1], [humanIDv1, commitment]).assertTrue();
+  sigs.sig2.verify(KimlikDAONodes[2], [humanIDv1, commitment]).assertTrue();
 };
 
 const EmptyRoot =
@@ -74,7 +74,7 @@ const acceptHumanIDv1 = (
 export {
   EmptyRoot,
   HumanIDWitness,
-  Nodes,
+  KimlikDAONodes,
   Signatures,
   acceptHumanIDv1,
   addToMerkleTree,
