@@ -1,5 +1,5 @@
 import { Field, Poseidon, PrivateKey, PublicKey, Signature } from "o1js";
-import { Signatures, authenticate, requireConsistent } from "./humanIDv1";
+import { HumanIDv1, authenticate, requireConsistent } from "./HumanIDv1";
 
 const Nodes = [
   PrivateKey.fromBigInt(1n),
@@ -15,44 +15,40 @@ const blindingCommit = (sender: PublicKey) => {
   ];
 };
 
-const signHumanIDv1 = (
-  humanIDv1Key: bigint,
-  sender: PublicKey
-): [Field, Field, Signatures] => {
-  const humanIDv1 = Field(humanIDv1Key);
+const signHumanIDv1 = (humanIDv1Id: bigint, sender: PublicKey): HumanIDv1 => {
+  const id = Field(humanIDv1Id);
   const [commitmentR, commitment] = blindingCommit(sender);
-  const sigs = new Signatures({
-    sig0: Signature.create(Nodes[0], [humanIDv1, commitment]),
-    sig1: Signature.create(Nodes[1], [humanIDv1, commitment]),
-    sig2: Signature.create(Nodes[2], [humanIDv1, commitment]),
+  return new HumanIDv1({
+    id,
+    commitmentR,
+    sig0: Signature.create(Nodes[0], [id, commitment]),
+    sig1: Signature.create(Nodes[1], [id, commitment]),
+    sig2: Signature.create(Nodes[2], [id, commitment]),
   });
-  return [humanIDv1, commitmentR, sigs];
 };
 
-const truncateHumanIDv1 = (humanIDv1Key: bigint) => humanIDv1Key & 0xffffffffn;
-
-const badSignHumanIDv1 = (
-  humanIDv1Key: bigint,
-  sender: PublicKey
-): [Field, Field, Signatures] => {
-  const humanIDv1 = Field(humanIDv1Key);
+const badSignHumanIDv1 = (humanIDv1: bigint, sender: PublicKey): HumanIDv1 => {
+  const id = Field(humanIDv1);
   const [commitmentR, commitment] = blindingCommit(sender);
-  const sigs = new Signatures({
-    sig0: Signature.create(Nodes[0], [humanIDv1, commitment]),
-    sig1: Signature.create(Nodes[1], [humanIDv1, commitment]),
-    sig2: Signature.create(Nodes[3], [humanIDv1, commitment]),
+  return new HumanIDv1({
+    id,
+    commitmentR,
+    sig0: Signature.create(Nodes[0], [id, commitment]),
+    sig1: Signature.create(Nodes[1], [id, commitment]),
+    sig2: Signature.create(Nodes[0], [id, commitment]),
   });
-  return [humanIDv1, commitmentR, sigs];
 };
+
+const truncateHumanIDv1 = (id: bigint) => id & 0xffffffffn;
 
 describe("humanIDv1 SDK tests", () => {
   it("should authenticate geniune humanIDv1s and reject others", () => {
     const claimant = PrivateKey.fromBigInt(0x1337n).toPublicKey();
     expect(() =>
-      authenticate(claimant, ...signHumanIDv1(100n, claimant))
+      authenticate(claimant, signHumanIDv1(100n, claimant))
     ).not.toThrow();
     expect(() =>
-      authenticate(claimant, ...badSignHumanIDv1(200n, claimant))
+      authenticate(claimant, badSignHumanIDv1(200n, claimant))
     ).toThrow();
   });
 

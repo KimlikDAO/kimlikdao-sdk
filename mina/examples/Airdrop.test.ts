@@ -1,6 +1,6 @@
 import { Field, MerkleTree, Mina, PrivateKey, PublicKey, UInt64 } from "o1js";
-import { HumanIDWitness } from "../humanIDv1";
-import { signHumanIDv1, truncateHumanIDv1 } from "../humanIDv1.test";
+import { HumanIDv1Witness } from "../HumanIDv1";
+import { signHumanIDv1, truncateHumanIDv1 } from "../HumanIDv1.test";
 import { Airdrop } from "./Airdrop";
 
 describe("Example Airdrop zkApp", () => {
@@ -32,7 +32,7 @@ describe("Example Airdrop zkApp", () => {
 
   const getWitnessAndInsert = (humanIDv1Key: bigint) => {
     const truncated = truncateHumanIDv1(humanIDv1Key);
-    const witness = new HumanIDWitness(tree.getWitness(truncated));
+    const witness = new HumanIDv1Witness(tree.getWitness(truncated));
     tree.setLeaf(truncated, Field(1));
     return witness;
   };
@@ -42,7 +42,7 @@ describe("Example Airdrop zkApp", () => {
 
   it("should let people claimReward()", () =>
     Mina.transaction(sender, () =>
-      app.claimReward(...signHumanIDv1(100n, sender), getWitnessAndInsert(100n))
+      app.claimReward(signHumanIDv1(100n, sender), getWitnessAndInsert(100n))
     )
       .prove()
       .sign([senderKey])
@@ -51,7 +51,7 @@ describe("Example Airdrop zkApp", () => {
   it("should let 2 people claimReward()", async () => {
     const id1 = 123123123123123123123123123123n;
     await Mina.transaction(sender, () =>
-      app.claimReward(...signHumanIDv1(id1, sender), getWitnessAndInsert(id1))
+      app.claimReward(signHumanIDv1(id1, sender), getWitnessAndInsert(id1))
     )
       .prove()
       .sign([senderKey])
@@ -59,7 +59,7 @@ describe("Example Airdrop zkApp", () => {
 
     const id2 = 123123123123123123123123123124n;
     await Mina.transaction(sender, () =>
-      app.claimReward(...signHumanIDv1(id2, sender), getWitnessAndInsert(id2))
+      app.claimReward(signHumanIDv1(id2, sender), getWitnessAndInsert(id2))
     )
       .prove()
       .sign([senderKey])
@@ -70,7 +70,7 @@ describe("Example Airdrop zkApp", () => {
     const id = 123123123123123123123123123124n;
     expect(() =>
       Mina.transaction(sender, () =>
-        app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(100n))
+        app.claimReward(signHumanIDv1(id, sender), getWitnessAndInsert(100n))
       )
         .prove()
         .sign([senderKey])
@@ -81,7 +81,7 @@ describe("Example Airdrop zkApp", () => {
   it("should not let double claimReward()", async () => {
     const id = 123123123123123123123123123123n;
     await Mina.transaction(sender, () =>
-      app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(id))
+      app.claimReward(signHumanIDv1(id, sender), getWitnessAndInsert(id))
     )
       .prove()
       .sign([senderKey])
@@ -89,7 +89,7 @@ describe("Example Airdrop zkApp", () => {
 
     expect(() =>
       Mina.transaction(sender, () =>
-        app.claimReward(...signHumanIDv1(id, sender), getWitnessAndInsert(id))
+        app.claimReward(signHumanIDv1(id, sender), getWitnessAndInsert(id))
       )
         .prove()
         .sign([senderKey])
@@ -101,7 +101,7 @@ describe("Example Airdrop zkApp", () => {
     let firstBalance = Mina.getBalance(sender);
 
     await Mina.transaction(sender, () =>
-      app.claimReward(...signHumanIDv1(100n, sender), getWitnessAndInsert(100n))
+      app.claimReward(signHumanIDv1(100n, sender), getWitnessAndInsert(100n))
     )
       .prove()
       .sign([senderKey])
