@@ -38,7 +38,7 @@ describe("Example Airdrop zkApp", () => {
   };
 
   it("should deploy the app", () =>
-    console.log("Deployed HumanIDs contract at", app.address));
+    console.log("Deployed HumanIDs contract at", app.address.toBase58()));
 
   it("should let people claimReward()", () =>
     Mina.transaction(sender, () =>

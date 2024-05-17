@@ -52,7 +52,7 @@ const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) =>
       "HumanID does not match the witness"
     );
 
-class PerHumanIDv1 extends SmartContract {
+class PerHumanIDv1Contract extends SmartContract {
   events = {
     "KimlikDAO-init": Field, // Emits the tree height along with init event
     "KimlikDAO-add-HumanIDv1": Field, // Emits the added HumanIDv1.id
@@ -92,7 +92,7 @@ export {
   HumanIDv1,
   HumanIDv1Witness,
   KPassSigners,
-  PerHumanIDv1,
+  PerHumanIDv1Contract,
   authenticate,
   requireConsistent
 };
