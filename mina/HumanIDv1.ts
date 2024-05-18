@@ -11,13 +11,52 @@ import {
   state,
 } from "o1js";
 
+const Uint8denHexe: string[] = Array(255);
+for (let /** number */ i = 0; i < 256; ++i)
+  Uint8denHexe[i] = i.toString(16).padStart(2, "0");
+
+const hex = (buff: Uint8Array) => {
+  /** @const {!Array<string>} */
+  const ikililer = new Array(buff.length);
+  for (let /** number */ i = 0; i < buff.length; ++i)
+    ikililer[i] = Uint8denHexe[buff[i]];
+  return ikililer.join("");
+}
+
+const uint8ArrayBEtoBigInt = (bytes: Uint8Array) => BigInt("0x" + hex(bytes));
+
+const readPublicKey = (bytes: Uint8Array) => PublicKey.from({
+  x: uint8ArrayBEtoBigInt(bytes.subarray(0, 32)),
+  isOdd: !!bytes[32]
+});
+
+const readField = (bytes: Uint8Array) => Field(uint8ArrayBEtoBigInt(bytes.subarray(0, 32)));
+
+const readSignature = (bytes: Uint8Array) => new Signature(
+  readField(bytes),
+  readField(bytes.subarray(32))
+);
+
 class HumanIDv1 extends Struct({
   id: Field,
   commitmentR: Field,
   sig0: Signature,
   sig1: Signature,
   sig2: Signature,
-}) { }
+}) {
+  /**
+   * @param bytes Uint8Array of length 256, where each field is written in BE encoding.
+   */
+  static fromBytes(bytes: Uint8Array) {
+    return new HumanIDv1({
+      id: readField(bytes),
+      commitmentR: readField(bytes.subarray(32)),
+      sig0: readSignature(bytes.subarray(64)),
+      sig1: readSignature(bytes.subarray(128)),
+      sig2: readSignature(bytes.subarray(192))
+    })
+  }
+}
 
 class HumanIDv1Witness extends MerkleWitness(33) { }
 
@@ -94,5 +133,9 @@ export {
   KPassSigners,
   PerHumanIDv1Contract,
   authenticate,
+  readField,
+  readPublicKey,
+  readSignature,
   requireConsistent
 };
+
