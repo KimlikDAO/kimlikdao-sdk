@@ -91,10 +91,12 @@ const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) =>
       "HumanID does not match the witness"
     );
 
+const EventStruct = Struct({uid: Field, humanIDv1: Field})
+
 class PerHumanIDv1Contract extends SmartContract {
   events = {
-    "KimlikDAO-init": Field, // Emits the tree height along with init event
-    "KimlikDAO-add-HumanIDv1": Field, // Emits the added HumanIDv1.id
+    "KimlikDAO-init": EventStruct, // Emits the tree height along with init event
+    "KimlikDAO-add-HumanIDv1": EventStruct, // Emits the added HumanIDv1.id
   };
 
   @state(Field) treeRoot = State<Field>();
@@ -102,7 +104,15 @@ class PerHumanIDv1Contract extends SmartContract {
   init() {
     super.init();
     this.treeRoot.set(EmptyRoot);
-    this.emitEvent("KimlikDAO-init", Field(32));
+    this.emitEvent(
+      "KimlikDAO-init", 
+      new EventStruct(
+        {
+          uid: Poseidon.hash([Field("KimlikDAO-init")]), 
+          humanIDv1: Field(32)
+        }
+      )
+    );
   }
 
   acceptHumanIDv1(
@@ -113,7 +123,14 @@ class PerHumanIDv1Contract extends SmartContract {
     authenticate(owner, humanIDv1);
     requireConsistent(humanIDv1.id, witness.calculateIndex());
     this.addToMerkleTree(witness);
-    this.emitEvent("KimlikDAO-add-HumanIDv1", humanIDv1.id);
+    this.emitEvent(
+      "KimlikDAO-add-HumanIDv1", 
+      new EventStruct(
+        {
+          uid: Poseidon.hash([Field("KimlikDAO-add-HumanIDv1")]), 
+          humanIDv1: humanIDv1.id
+        }
+      ));
   }
 
   addToMerkleTree(witness: HumanIDv1Witness) {
