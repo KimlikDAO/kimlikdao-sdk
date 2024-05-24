@@ -37,6 +37,10 @@ const readSignature = (bytes: Uint8Array) => new Signature(
   readField(bytes.subarray(32))
 );
 
+const encoder = new TextEncoder();
+const encodedEventInit = encoder.encode("KimlikDAO-init");
+const encodedEventCreate = encoder.encode("KimlikDAO-add-HumanIDv1");
+
 class HumanIDv1 extends Struct({
   id: Field,
   commitmentR: Field,
@@ -108,7 +112,7 @@ class PerHumanIDv1Contract extends SmartContract {
       "KimlikDAO-init", 
       new EventStruct(
         {
-          uid: Poseidon.hash([Field("KimlikDAO-init")]), 
+          uid: Poseidon.hash([readField(encodedEventInit)]), 
           humanIDv1: Field(32)
         }
       )
@@ -127,7 +131,7 @@ class PerHumanIDv1Contract extends SmartContract {
       "KimlikDAO-add-HumanIDv1", 
       new EventStruct(
         {
-          uid: Poseidon.hash([Field("KimlikDAO-add-HumanIDv1")]), 
+          uid: Poseidon.hash([readField(encodedEventCreate)]), 
           humanIDv1: humanIDv1.id
         }
       ));
