@@ -1,7 +1,7 @@
 import { Field, Poseidon, PrivateKey, PublicKey, Signature } from "o1js";
 import { HumanIDv1, authenticate, requireConsistent } from "./HumanIDv1";
 
-const Nodes = [
+const KPassSigners = [
   PrivateKey.fromBigInt(1n),
   PrivateKey.fromBigInt(2n),
   PrivateKey.fromBigInt(3n),
@@ -21,9 +21,9 @@ const signHumanIDv1 = (humanIDv1Id: bigint, sender: PublicKey): HumanIDv1 => {
   return new HumanIDv1({
     id,
     commitmentR,
-    sig0: Signature.create(Nodes[0], [id, commitment]),
-    sig1: Signature.create(Nodes[1], [id, commitment]),
-    sig2: Signature.create(Nodes[2], [id, commitment]),
+    sig0: Signature.create(KPassSigners[0], [id, commitment]),
+    sig1: Signature.create(KPassSigners[1], [id, commitment]),
+    sig2: Signature.create(KPassSigners[2], [id, commitment]),
   });
 };
 
@@ -33,9 +33,9 @@ const badSignHumanIDv1 = (humanIDv1: bigint, sender: PublicKey): HumanIDv1 => {
   return new HumanIDv1({
     id,
     commitmentR,
-    sig0: Signature.create(Nodes[0], [id, commitment]),
-    sig1: Signature.create(Nodes[1], [id, commitment]),
-    sig2: Signature.create(Nodes[0], [id, commitment]),
+    sig0: Signature.create(KPassSigners[0], [id, commitment]),
+    sig1: Signature.create(KPassSigners[1], [id, commitment]),
+    sig2: Signature.create(KPassSigners[0], [id, commitment]),
   });
 };
 

@@ -1,3 +1,4 @@
+import { uint8ArrayBEtoBigInt } from "@kimlikdao/lib/util/çevir";
 import {
   Field,
   MerkleWitness,
@@ -10,25 +11,6 @@ import {
   Struct,
   state,
 } from "o1js";
-
-const Uint8denHexe: string[] = Array(255);
-for (let /** number */ i = 0; i < 256; ++i)
-  Uint8denHexe[i] = i.toString(16).padStart(2, "0");
-
-const hex = (buff: Uint8Array) => {
-  /** @const {!Array<string>} */
-  const ikililer = new Array(buff.length);
-  for (let /** number */ i = 0; i < buff.length; ++i)
-    ikililer[i] = Uint8denHexe[buff[i]];
-  return ikililer.join("");
-}
-
-const uint8ArrayBEtoBigInt = (bytes: Uint8Array) => BigInt("0x" + hex(bytes));
-
-const readPublicKey = (bytes: Uint8Array) => PublicKey.from({
-  x: uint8ArrayBEtoBigInt(bytes.subarray(0, 32)),
-  isOdd: !!bytes[32]
-});
 
 const readField = (bytes: Uint8Array) => Field(uint8ArrayBEtoBigInt(bytes.subarray(0, 32)));
 
@@ -60,6 +42,8 @@ class HumanIDv1 extends Struct({
 
 class HumanIDv1Witness extends MerkleWitness(33) { }
 
+const Event = Struct({ uid: Field, value: Field });
+
 const KPassSigners = [
   PrivateKey.fromBigInt(1n).toPublicKey(),
   PrivateKey.fromBigInt(2n).toPublicKey(),
@@ -79,8 +63,17 @@ const authenticate = (owner: PublicKey, hid: HumanIDv1) => {
 const EmptyRoot =
   Field(0x21afce36daa1a2d67391072035f4555a85aea7197e5830b128f121aa382770cdn);
 
+// Field(1).div(Field(2 ** 32))
 const Inverse2Exp32 =
   Field(0x3fffffffc00000000000000000000000224698fbe706601f8fe037d166d2cf14n);
+
+// CircuitString.fromString("KimlikDAO-init").hash()
+const InitEventUID =
+  Field(0x363b52a04cf908f3357575efb35b0bf635ebb4fc2e921c140e99426fb1ef89dcn);
+
+// CircuitString.fromString("KimlikDAO-add-HumanIDv1").hash()
+const AddEventUID =
+  Field(0x13c6e18cd3ba5dab50481970932ded0f7513e22ada9b77949a83dd54fc7c4e6dn);
 
 const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) =>
   humanIDv1
@@ -93,8 +86,8 @@ const requireConsistent = (humanIDv1: Field, truncatedHumanIDv1: Field) =>
 
 class PerHumanIDv1Contract extends SmartContract {
   events = {
-    "KimlikDAO-init": Field, // Emits the tree height along with init event
-    "KimlikDAO-add-HumanIDv1": Field, // Emits the added HumanIDv1.id
+    "KimlikDAO-init": Event, // Emits the tree height along with init event
+    "KimlikDAO-add-HumanIDv1": Event, // Emits the added HumanIDv1.id
   };
 
   @state(Field) treeRoot = State<Field>();
@@ -102,7 +95,10 @@ class PerHumanIDv1Contract extends SmartContract {
   init() {
     super.init();
     this.treeRoot.set(EmptyRoot);
-    this.emitEvent("KimlikDAO-init", Field(32));
+    this.emitEvent(
+      "KimlikDAO-init",
+      new Event({ uid: InitEventUID, value: Field(32) })
+    );
   }
 
   acceptHumanIDv1(
@@ -113,7 +109,10 @@ class PerHumanIDv1Contract extends SmartContract {
     authenticate(owner, humanIDv1);
     requireConsistent(humanIDv1.id, witness.calculateIndex());
     this.addToMerkleTree(witness);
-    this.emitEvent("KimlikDAO-add-HumanIDv1", humanIDv1.id);
+    this.emitEvent(
+      "KimlikDAO-add-HumanIDv1",
+      new Event({ uid: AddEventUID, value: humanIDv1.id })
+    );
   }
 
   addToMerkleTree(witness: HumanIDv1Witness) {
@@ -134,8 +133,6 @@ export {
   PerHumanIDv1Contract,
   authenticate,
   readField,
-  readPublicKey,
   readSignature,
   requireConsistent
 };
-
